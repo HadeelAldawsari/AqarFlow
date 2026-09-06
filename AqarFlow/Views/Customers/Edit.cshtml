@@ -1,0 +1,139 @@
+﻿@model AqarFlow.Models.Customer
+
+@{
+    ViewData["Title"] = "Edit Customer";
+}
+
+<div class="container mt-5">
+
+    <h1>Edit Customer</h1>
+    <p class="text-muted">Update customer information</p>
+
+    <hr />
+
+    <form asp-controller="Customers"
+          asp-action="Edit"
+          method="post">
+
+        <!-- Customer ID -->
+        <input type="hidden" asp-for="Id" />
+
+        <!-- Keep Original Created Date -->
+        <input type="hidden" asp-for="CreatedAt" />
+
+        <!-- Customer Name -->
+        <div class="mb-3">
+            <label asp-for="Name" class="form-label">Customer Name</label>
+            <input asp-for="Name" class="form-control" />
+            <span asp-validation-for="Name" class="text-danger"></span>
+        </div>
+
+        <!-- Phone -->
+        <div class="mb-3">
+            <label asp-for="Phone" class="form-label">Phone Number</label>
+            <input asp-for="Phone" class="form-control" />
+            <span asp-validation-for="Phone" class="text-danger"></span>
+        </div>
+
+        <!-- Email -->
+        <div class="mb-3">
+            <label asp-for="Email" class="form-label">Email</label>
+            <input asp-for="Email" class="form-control" />
+        </div>
+
+        <!-- Purpose -->
+        <div class="mb-3">
+            <label asp-for="Purpose" class="form-label">Purpose</label>
+            <select asp-for="Purpose" class="form-select">
+                <option value="Buy">Buy</option>
+                <option value="Rent">Rent</option>
+                <option value="Invest">Invest</option>
+            </select>
+        </div>
+
+        <!-- Property Type -->
+        <div class="mb-3">
+            <label asp-for="PropertyType" class="form-label">Property Type</label>
+            <select asp-for="PropertyType" class="form-select">
+                <option value="Villa">Villa</option>
+                <option value="Apartment">Apartment</option>
+                <option value="Land">Land</option>
+                <option value="Floor">Floor</option>
+            </select>
+        </div>
+
+        <!-- Preferred City -->
+        <div class="mb-3">
+            <label asp-for="PreferredCity" class="form-label">Preferred City</label>
+            <input asp-for="PreferredCity" class="form-control" />
+        </div>
+
+        <!-- Preferred Area -->
+        <div class="mb-3">
+            <label asp-for="PreferredArea" class="form-label">Preferred Area</label>
+            <input asp-for="PreferredArea" class="form-control" />
+        </div>
+
+        <!-- Minimum Budget -->
+        <div class="mb-3">
+            <label asp-for="MinBudget" class="form-label">Minimum Budget</label>
+            <input asp-for="MinBudget" class="form-control" />
+        </div>
+
+        <!-- Maximum Budget -->
+        <div class="mb-3">
+            <label asp-for="MaxBudget" class="form-label">Maximum Budget</label>
+            <input asp-for="MaxBudget" class="form-control" />
+        </div>
+
+        <!-- Bedrooms -->
+        <div class="mb-3">
+            <label asp-for="Bedrooms" class="form-label">Bedrooms</label>
+            <input asp-for="Bedrooms" class="form-control" />
+        </div>
+
+        <!-- Status -->
+        <div class="mb-3">
+            <label asp-for="Status" class="form-label">Status</label>
+            <select asp-for="Status" class="form-select">
+                <option value="New">New</option>
+                <option value="Contacted">Contacted</option>
+                <option value="Interested">Interested</option>
+                <option value="Closed">Closed</option>
+            </select>
+        </div>
+
+        <!-- Source -->
+        <div class="mb-3">
+            <label asp-for="Source" class="form-label">Customer Source</label>
+            <select asp-for="Source" class="form-select">
+                <option value="Website">Website</option>
+                <option value="WhatsApp">WhatsApp</option>
+                <option value="Instagram">Instagram</option>
+                <option value="Referral">Referral</option>
+                <option value="Other">Other</option>
+            </select>
+        </div>
+
+        <!-- Notes -->
+        <div class="mb-3">
+            <label asp-for="Notes" class="form-label">Notes</label>
+            <textarea asp-for="Notes"
+                      class="form-control"
+                      rows="4"></textarea>
+        </div>
+
+        <!-- Buttons -->
+        <button type="submit" class="btn btn-primary">
+            Save Changes
+        </button>
+
+        <a asp-controller="Customers"
+           asp-action="Index"
+           class="btn btn-secondary">
+            Back
+        </a>
+
+    </form>
+
+</div>

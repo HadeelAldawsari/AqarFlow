@@ -1,0 +1,97 @@
+﻿@model IEnumerable<AqarFlow.Models.Customer>
+
+@{
+    ViewData["Title"] = "Customers";
+}
+
+<div class="container mt-5">
+
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1>Customers</h1>
+            <p class="text-muted">Manage AqarFlow customers</p>
+        </div>
+
+        <!-- Add Customer Button -->
+        <a asp-controller="Customers"
+           asp-action="Create"
+           class="btn btn-primary">
+            Add Customer
+        </a>
+    </div>
+
+
+    <!-- Customers Table -->
+    <table class="table table-bordered table-striped table-hover">
+
+        <thead class="table-dark">
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Phone</th>
+                <th>Purpose</th>
+                <th>Property Type</th>
+                <th>Preferred Area</th>
+                <th>Status</th>
+                <th>Created At</th>
+
+                <!-- Edit and Delete Buttons -->
+                <th>Actions</th>
+            </tr>
+        </thead>
+
+
+        <tbody>
+
+            @foreach (var customer in Model)
+            {
+                <tr>
+
+                    <td>@customer.Id</td>
+
+                    <td>@customer.Name</td>
+
+                    <td>@customer.Phone</td>
+
+                    <td>@customer.Purpose</td>
+
+                    <td>@customer.PropertyType</td>
+
+                    <td>@customer.PreferredArea</td>
+
+                    <td>@customer.Status</td>
+
+                    <td>@customer.CreatedAt.ToString("dd/MM/yyyy")</td>
+
+
+                    <!-- Actions -->
+                    <td>
+
+                        <!-- Edit Button -->
+                        <a asp-controller="Customers"
+                           asp-action="Edit"
+                           asp-route-id="@customer.Id"
+                           class="btn btn-warning btn-sm">
+                            Edit
+                        </a>
+
+
+                        <!-- Delete Button -->
+                        <a asp-controller="Customers"
+                           asp-action="Delete"
+                           asp-route-id="@customer.Id"
+                           class="btn btn-danger btn-sm">
+                            Delete
+                        </a>
+
+                    </td>
+
+                </tr>
+            }
+
+        </tbody>
+
+    </table>
+
+</div>

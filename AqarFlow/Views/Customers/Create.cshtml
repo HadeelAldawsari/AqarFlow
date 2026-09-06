@@ -1,0 +1,130 @@
+﻿@model AqarFlow.Models.Customer
+
+@{
+    ViewData["Title"] = "Add Customer";
+}
+
+<div class="container mt-5">
+
+    <h1>Add Customer</h1>
+    <p class="text-muted">Add a new customer to AqarFlow</p>
+
+    <hr />
+
+    <form asp-controller="Customers"
+          asp-action="Create"
+          method="post">
+
+        <!-- Customer Name -->
+        <div class="mb-3">
+            <label asp-for="Name" class="form-label">Customer Name</label>
+            <input asp-for="Name" class="form-control" />
+            <span asp-validation-for="Name" class="text-danger"></span>
+        </div>
+
+        <!-- Phone -->
+        <div class="mb-3">
+            <label asp-for="Phone" class="form-label">Phone Number</label>
+            <input asp-for="Phone" class="form-control" />
+            <span asp-validation-for="Phone" class="text-danger"></span>
+        </div>
+
+        <!-- Email -->
+        <div class="mb-3">
+            <label asp-for="Email" class="form-label">Email</label>
+            <input asp-for="Email" class="form-control" />
+        </div>
+
+        <!-- Purpose -->
+        <div class="mb-3">
+            <label asp-for="Purpose" class="form-label">Purpose</label>
+
+            <select asp-for="Purpose" class="form-select">
+                <option value="">Select Purpose</option>
+                <option value="Buy">Buy</option>
+                <option value="Rent">Rent</option>
+                <option value="Invest">Invest</option>
+            </select>
+
+            <span asp-validation-for="Purpose" class="text-danger"></span>
+        </div>
+
+        <!-- Property Type -->
+        <div class="mb-3">
+            <label asp-for="PropertyType" class="form-label">Property Type</label>
+
+            <select asp-for="PropertyType" class="form-select">
+                <option value="">Select Property Type</option>
+                <option value="Villa">Villa</option>
+                <option value="Apartment">Apartment</option>
+                <option value="Land">Land</option>
+                <option value="Floor">Floor</option>
+            </select>
+        </div>
+
+        <!-- Preferred City -->
+        <div class="mb-3">
+            <label asp-for="PreferredCity" class="form-label">Preferred City</label>
+            <input asp-for="PreferredCity" class="form-control" />
+        </div>
+
+        <!-- Preferred Area -->
+        <div class="mb-3">
+            <label asp-for="PreferredArea" class="form-label">Preferred Area</label>
+            <input asp-for="PreferredArea" class="form-control" />
+        </div>
+
+        <!-- Minimum Budget -->
+        <div class="mb-3">
+            <label asp-for="MinBudget" class="form-label">Minimum Budget</label>
+            <input asp-for="MinBudget" class="form-control" />
+        </div>
+
+        <!-- Maximum Budget -->
+        <div class="mb-3">
+            <label asp-for="MaxBudget" class="form-label">Maximum Budget</label>
+            <input asp-for="MaxBudget" class="form-control" />
+        </div>
+
+        <!-- Bedrooms -->
+        <div class="mb-3">
+            <label asp-for="Bedrooms" class="form-label">Bedrooms</label>
+            <input asp-for="Bedrooms" class="form-control" />
+        </div>
+
+        <!-- Source -->
+        <div class="mb-3">
+            <label asp-for="Source" class="form-label">Customer Source</label>
+
+            <select asp-for="Source" class="form-select">
+                <option value="">Select Source</option>
+                <option value="Website">Website</option>
+                <option value="WhatsApp">WhatsApp</option>
+                <option value="Instagram">Instagram</option>
+                <option value="Referral">Referral</option>
+                <option value="Other">Other</option>
+            </select>
+        </div>
+
+        <!-- Notes -->
+        <div class="mb-3">
+            <label asp-for="Notes" class="form-label">Notes</label>
+            <textarea asp-for="Notes"
+                      class="form-control"
+                      rows="4"></textarea>
+        </div>
+
+        <!-- Buttons -->
+        <button type="submit" class="btn btn-primary">
+            Add Customer
+        </button>
+
+        <a asp-controller="Customers"
+           asp-action="Index"
+           class="btn btn-secondary">
+            Back
+        </a>
+
+    </form>
+
+</div>
