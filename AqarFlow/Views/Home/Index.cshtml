@@ -1,8 +1,536 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "Dashboard";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<!-- Dashboard Header -->
+<div class="dashboard-header mb-4">
+    <div>
+        <h2 class="fw-bold mb-1">Dashboard</h2>
+        <p class="text-muted mb-0">
+            Overview of your real estate activities
+        </p>
+    </div>
 </div>
+
+
+<!-- =========================
+     KPI Cards
+     ========================= -->
+<div class="row g-4 mb-4">
+
+    <!-- Total Customers -->
+    <div class="col-md-6 col-xl-3">
+        <div class="card p-4 h-100">
+            <div class="d-flex align-items-center justify-content-between">
+
+                <div>
+                    <p class="text-muted mb-1">Total Customers</p>
+
+                    <h2 class="fw-bold mb-1">
+                        @ViewBag.TotalCustomers
+                    </h2>
+
+                    <small class="text-success">
+                        Customers in AqarFlow
+                    </small>
+                </div>
+
+                <div class="dashboard-icon green-icon">
+                    <i class="bi bi-people-fill"></i>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Total Properties -->
+    <div class="col-md-6 col-xl-3">
+        <div class="card p-4 h-100">
+            <div class="d-flex align-items-center justify-content-between">
+
+                <div>
+                    <p class="text-muted mb-1">Total Properties</p>
+
+                    <h2 class="fw-bold mb-1">
+                        @ViewBag.TotalProperties
+                    </h2>
+
+                    <small class="text-muted">
+                        Properties in AqarFlow
+                    </small>
+                </div>
+
+                <div class="dashboard-icon gold-icon">
+                    <i class="bi bi-building"></i>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Active Deals -->
+    <div class="col-md-6 col-xl-3">
+        <div class="card p-4 h-100">
+            <div class="d-flex align-items-center justify-content-between">
+
+                <div>
+                    <p class="text-muted mb-1">Active Deals</p>
+
+                    <h2 class="fw-bold mb-1">
+                        @ViewBag.ActiveDeals
+                    </h2>
+
+                    <small class="text-muted">
+                        Open and negotiating deals
+                    </small>
+                </div>
+
+                <div class="dashboard-icon blue-icon">
+                    <i class="bi bi-handshake"></i>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Follow-ups Today -->
+    <div class="col-md-6 col-xl-3">
+        <div class="card p-4 h-100">
+            <div class="d-flex align-items-center justify-content-between">
+
+                <div>
+                    <p class="text-muted mb-1">Follow-ups Today</p>
+
+                    <h2 class="fw-bold mb-1">
+                        @ViewBag.FollowUpsToday
+                    </h2>
+
+                    <small class="text-muted">
+                        Scheduled for today
+                    </small>
+                </div>
+
+                <div class="dashboard-icon purple-icon">
+                    <i class="bi bi-list-check"></i>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+</div>
+
+
+<!-- =========================
+     Main Dashboard Row
+     ========================= -->
+<div class="row g-4 mb-4">
+
+    <!-- Leads Over Time -->
+    <div class="col-lg-8">
+        <div class="card p-4 h-100">
+
+            <div class="d-flex justify-content-between align-items-center mb-3">
+
+                <div>
+                    <h5 class="fw-bold mb-1">
+                        Leads Over Time
+                    </h5>
+
+                    <small class="text-muted">
+                        Number of new customers received each month
+                    </small>
+                </div>
+
+                <span class="badge bg-light text-dark px-3 py-2">
+                    @ViewBag.ChartYear
+                </span>
+
+            </div>
+
+            <!-- Real Chart -->
+            <div style="height: 300px;">
+                <canvas id="leadsChart"></canvas>
+            </div>
+
+        </div>
+    </div>
+
+
+    <!-- Customers by Status -->
+    <div class="col-lg-4">
+        <div class="card p-4 h-100">
+
+            <h5 class="fw-bold mb-4">
+                Customers by Status
+            </h5>
+
+            <div class="status-circle mx-auto mb-4">
+
+                <div class="status-circle-inner">
+
+                    <h3 class="fw-bold mb-0">
+                        @ViewBag.TotalCustomers
+                    </h3>
+
+                    <small class="text-muted">
+                        Total
+                    </small>
+
+                </div>
+
+            </div>
+
+
+            <div class="d-flex justify-content-between mb-2">
+                <span>New</span>
+                <strong>@ViewBag.NewCustomers</strong>
+            </div>
+
+            <div class="d-flex justify-content-between mb-2">
+                <span>Interested</span>
+                <strong>@ViewBag.InterestedCustomers</strong>
+            </div>
+
+            <div class="d-flex justify-content-between mb-2">
+                <span>In Progress</span>
+                <strong>@ViewBag.InProgressCustomers</strong>
+            </div>
+
+            <div class="d-flex justify-content-between">
+                <span>Closed</span>
+                <strong>@ViewBag.ClosedCustomers</strong>
+            </div>
+
+        </div>
+    </div>
+
+</div>
+
+
+<!-- =========================
+     Bottom Row
+     ========================= -->
+<div class="row g-4">
+
+    <!-- Recent Customers -->
+    <div class="col-lg-8">
+
+        <div class="card p-4">
+
+            <div class="d-flex justify-content-between align-items-center mb-3">
+
+                <div>
+                    <h5 class="fw-bold mb-1">
+                        Recent Customers
+                    </h5>
+
+                    <small class="text-muted">
+                        Latest customers added to AqarFlow
+                    </small>
+                </div>
+
+                <a asp-controller="Customers"
+                   asp-action="Index"
+                   class="text-decoration-none">
+                    View All
+                </a>
+
+            </div>
+
+
+            <div class="table-responsive">
+
+                <table class="table align-middle">
+
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Phone</th>
+                            <th>Interested In</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                        @if (ViewBag.RecentCustomers != null && ViewBag.RecentCustomers.Count > 0)
+                        {
+                            foreach (var customer in ViewBag.RecentCustomers)
+                            {
+                                <tr>
+
+                                    <td>
+                                        @customer.Name
+                                    </td>
+
+                                    <td>
+                                        @customer.Phone
+                                    </td>
+
+                                    <td>
+
+                                        @if (!string.IsNullOrEmpty(customer.PropertyType))
+                                        {
+                                            <span>@customer.PropertyType</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">
+                                                Not specified
+                                            </span>
+                                        }
+
+                                        @if (!string.IsNullOrEmpty(customer.PreferredCity))
+                                        {
+                                            <span>
+                                                - @customer.PreferredCity
+                                            </span>
+                                        }
+
+                                    </td>
+
+                                    <td>
+
+                                        @if (customer.Status == "New")
+                                        {
+                                            <span class="badge bg-success-subtle text-success">
+                                                New
+                                            </span>
+                                        }
+                                        else if (customer.Status == "Interested")
+                                        {
+                                            <span class="badge bg-warning-subtle text-warning-emphasis">
+                                                Interested
+                                            </span>
+                                        }
+                                        else if (customer.Status == "In Progress")
+                                        {
+                                            <span class="badge bg-primary-subtle text-primary">
+                                                In Progress
+                                            </span>
+                                        }
+                                        else if (customer.Status == "Closed")
+                                        {
+                                            <span class="badge bg-secondary-subtle text-secondary">
+                                                Closed
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-light text-dark">
+                                                @customer.Status
+                                            </span>
+                                        }
+
+                                    </td>
+
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="4"
+                                    class="text-center text-muted py-4">
+
+                                    No customers found.
+
+                                </td>
+                            </tr>
+                        }
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- Upcoming Follow-ups -->
+    <div class="col-lg-4">
+
+        <div class="card p-4">
+
+            <div class="mb-3">
+
+                <h5 class="fw-bold mb-1">
+                    Upcoming Follow-ups
+                </h5>
+
+                <small class="text-muted">
+                    Upcoming scheduled follow-ups
+                </small>
+
+            </div>
+
+
+            @if (ViewBag.UpcomingFollowUps != null && ViewBag.UpcomingFollowUps.Count > 0)
+            {
+                foreach (var followUp in ViewBag.UpcomingFollowUps)
+                {
+                    <div class="followup-item">
+
+                        <div class="followup-time">
+                            @followUp.NextFollowUpDate.Value.ToString("hh:mm tt")
+                        </div>
+
+                        <div>
+
+                            <strong>
+                                @(followUp.Customer != null
+                                    ? followUp.Customer.Name
+                                    : "Unknown Customer")
+                            </strong>
+
+                            <p class="text-muted mb-1">
+                                @(string.IsNullOrEmpty(followUp.Result)
+                                    ? "Follow-up scheduled"
+                                    : followUp.Result)
+                            </p>
+
+                            <small class="text-muted">
+                                @followUp.NextFollowUpDate.Value.ToString("dd MMM yyyy")
+                            </small>
+
+                        </div>
+
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="text-center text-muted py-5">
+
+                    <i class="bi bi-calendar-check fs-2 d-block mb-3"></i>
+
+                    <p class="mb-0">
+                        No upcoming follow-ups.
+                    </p>
+
+                </div>
+            }
+
+        </div>
+
+    </div>
+
+</div>
+
+
+@section Scripts {
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+
+        // Get chart data from HomeController
+        const monthLabels = @Html.Raw(
+                    System.Text.Json.JsonSerializer.Serialize(ViewBag.MonthLabels)
+                    );
+
+        const monthValues = @Html.Raw(
+                    System.Text.Json.JsonSerializer.Serialize(ViewBag.MonthValues)
+                    );
+
+
+        const chartCanvas = document.getElementById('leadsChart');
+
+
+        new Chart(chartCanvas, {
+
+            type: 'line',
+
+            data: {
+
+                labels: monthLabels,
+
+                datasets: [
+                    {
+                        label: 'New Customers',
+
+                        data: monthValues,
+
+                        borderColor: '#174f42',
+
+                        backgroundColor: 'rgba(23, 79, 66, 0.10)',
+
+                        borderWidth: 3,
+
+                        fill: true,
+
+                        tension: 0.4,
+
+                        pointRadius: 4,
+
+                        pointBackgroundColor: '#174f42',
+
+                        pointBorderColor: '#ffffff',
+
+                        pointBorderWidth: 2,
+
+                        pointHoverRadius: 6
+                    }
+                ]
+            },
+
+            options: {
+
+                responsive: true,
+
+                maintainAspectRatio: false,
+
+                plugins: {
+
+                    legend: {
+                        display: false
+                    }
+
+                },
+
+                scales: {
+
+                    y: {
+
+                        beginAtZero: true,
+
+                        ticks: {
+
+                            precision: 0
+
+                        },
+
+                        grid: {
+
+                            color: '#eef1ef'
+
+                        }
+
+                    },
+
+                    x: {
+
+                        grid: {
+
+                            display: false
+
+                        }
+
+                    }
+
+                }
+
+            }
+
+        });
+
+    </script>
+}

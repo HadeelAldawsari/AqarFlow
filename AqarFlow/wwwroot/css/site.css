@@ -1,22 +1,475 @@
+/* =========================
+   AqarFlow - Main Style
+   ========================= */
+
 html {
-  font-size: 14px;
+    font-size: 14px;
 }
 
 @media (min-width: 768px) {
-  html {
-    font-size: 16px;
-  }
+    html {
+        font-size: 16px;
+    }
 }
 
-.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
-  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
-}
-
-html {
-  position: relative;
-  min-height: 100%;
+* {
+    box-sizing: border-box;
 }
 
 body {
-  margin-bottom: 60px;
+    margin: 0;
+    background: #f7f8f7;
+    color: #202428;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+
+/* =========================
+   Main Layout
+   ========================= */
+
+.app-wrapper {
+    display: flex;
+    min-height: 100vh;
+}
+
+
+/* =========================
+   Sidebar
+   ========================= */
+
+.sidebar {
+    width: 260px;
+    min-height: 100vh;
+    background: linear-gradient(180deg, #123d34 0%, #174f42 100%);
+    color: white;
+    padding: 28px 18px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+
+/* Logo */
+
+.sidebar-logo {
+    display: flex;
+    align-items: center;
+    gap: 13px;
+    padding: 5px 10px 30px;
+}
+
+.logo-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 14px;
+    background: rgba(255,255,255,0.12);
+    color: #e5c37b;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 27px;
+}
+
+.sidebar-logo h3 {
+    margin: 0;
+    font-size: 23px;
+    font-weight: 700;
+    color: #ffffff;
+}
+
+.sidebar-logo span {
+    font-size: 12px;
+    color: #c9d7d2;
+}
+
+
+/* Navigation */
+
+.sidebar-menu {
+    flex: 1;
+}
+
+.sidebar-link {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 13px 16px;
+    margin-bottom: 6px;
+    color: #e7efec;
+    text-decoration: none;
+    border-radius: 12px;
+    transition: 0.2s ease;
+}
+
+    .sidebar-link i {
+        width: 22px;
+        font-size: 19px;
+    }
+
+    .sidebar-link:hover {
+        background: rgba(255,255,255,0.10);
+        color: white;
+    }
+
+    .sidebar-link:first-child {
+        background: rgba(255,255,255,0.13);
+        color: white;
+        font-weight: 600;
+    }
+
+.sidebar-divider {
+    height: 1px;
+    background: rgba(255,255,255,0.14);
+    margin: 20px 8px;
+}
+
+.sidebar-section-title {
+    margin: 0 15px 10px;
+    font-size: 11px;
+    letter-spacing: 1px;
+    color: #8eaaa2;
+}
+
+
+/* Sidebar Bottom */
+
+.sidebar-footer {
+    background: rgba(255,255,255,0.07);
+    border-radius: 14px;
+    padding: 16px;
+    margin-top: 20px;
+    font-size: 13px;
+}
+
+    .sidebar-footer p {
+        margin: 0 0 3px;
+    }
+
+    .sidebar-footer strong {
+        color: #e6c477;
+    }
+
+
+/* =========================
+   Main Area
+   ========================= */
+
+.main-area {
+    margin-left: 260px;
+    width: calc(100% - 260px);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+
+/* =========================
+   Top Bar
+   ========================= */
+
+.topbar {
+    min-height: 92px;
+    background: white;
+    border-bottom: 1px solid #e9ecef;
+    padding: 20px 30px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+    .topbar h4 {
+        font-size: 22px;
+        font-weight: 700;
+    }
+
+.topbar-right {
+    display: flex;
+    align-items: center;
+    gap: 25px;
+}
+
+
+/* Search */
+
+.search-box {
+    width: 330px;
+    height: 44px;
+    border: 1px solid #dfe4e2;
+    border-radius: 24px;
+    display: flex;
+    align-items: center;
+    padding: 0 17px;
+    background: #fafbfa;
+}
+
+    .search-box i {
+        color: #7a8580;
+        margin-right: 10px;
+    }
+
+    .search-box input {
+        width: 100%;
+        border: none;
+        outline: none;
+        background: transparent;
+        font-size: 14px;
+    }
+
+
+/* Profile */
+
+.profile-box {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.profile-circle {
+    width: 43px;
+    height: 43px;
+    background: #dcece3;
+    color: #174f42;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+}
+
+.profile-box strong {
+    display: block;
+    font-size: 14px;
+}
+
+.profile-box small {
+    display: block;
+    color: #7d8582;
+}
+
+
+/* =========================
+   Content
+   ========================= */
+
+.content-area {
+    flex: 1;
+    padding: 30px;
+    background: #f7f8f7;
+}
+
+
+/* =========================
+   Cards
+   ========================= */
+
+.card {
+    border: none;
+    border-radius: 18px;
+    background: white;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+}
+
+
+/* =========================
+   Tables
+   ========================= */
+
+.table {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+    .table thead {
+        background: #174f42;
+        color: white;
+    }
+
+        .table thead th {
+            padding: 15px;
+            border: none;
+        }
+
+    .table tbody td {
+        padding: 14px;
+        vertical-align: middle;
+    }
+
+
+/* =========================
+   Buttons
+   ========================= */
+
+.btn-primary {
+    background: #174f42;
+    border-color: #174f42;
+}
+
+    .btn-primary:hover {
+        background: #103d33;
+        border-color: #103d33;
+    }
+
+.btn-info {
+    background: #d8ebe4;
+    border-color: #d8ebe4;
+    color: #174f42;
+}
+
+.btn-warning {
+    background: #e8c46c;
+    border-color: #e8c46c;
+}
+
+
+/* =========================
+   Footer
+   ========================= */
+
+.app-footer {
+    display: flex;
+    justify-content: space-between;
+    padding: 15px 30px;
+    color: #89918e;
+    font-size: 12px;
+    background: #f7f8f7;
+}
+
+
+/* =========================
+   Responsive
+   ========================= */
+
+@media (max-width: 900px) {
+
+    .sidebar {
+        width: 210px;
+    }
+
+    .main-area {
+        margin-left: 210px;
+        width: calc(100% - 210px);
+    }
+
+    .search-box {
+        display: none;
+    }
+
+    /* =========================
+   Dashboard
+   ========================= */
+
+    .dashboard-icon {
+        width: 58px;
+        height: 58px;
+        border-radius: 15px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 25px;
+    }
+
+    .green-icon {
+        background: #e4f2e9;
+        color: #176c51;
+    }
+
+    .gold-icon {
+        background: #f8edd9;
+        color: #a87522;
+    }
+
+    .blue-icon {
+        background: #e4edf8;
+        color: #315f97;
+    }
+
+    .purple-icon {
+        background: #efe6f5;
+        color: #815b94;
+    }
+
+
+    /* Chart Placeholder */
+
+    .chart-placeholder {
+        height: 280px;
+        border-radius: 14px;
+        background: linear-gradient(180deg, #fbfdfc 0%, #edf6f2 100%);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid #edf1ef;
+    }
+
+    .chart-line {
+        width: 80%;
+        height: 3px;
+        background: #176c51;
+        margin-bottom: 15px;
+        transform: rotate(-4deg);
+    }
+
+
+    /* Customer Status Circle */
+
+    .status-circle {
+        width: 180px;
+        height: 180px;
+        border-radius: 50%;
+        background: conic-gradient( #176c51 0% 33%, #9dcab7 33% 56%, #e4c27a 56% 83%, #f0dfbd 83% 100% );
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .status-circle-inner {
+        width: 115px;
+        height: 115px;
+        border-radius: 50%;
+        background: white;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+    }
+
+
+    /* Follow Ups */
+
+    .followup-item {
+        display: flex;
+        gap: 18px;
+        padding: 17px 0;
+        border-bottom: 1px solid #ecefed;
+    }
+
+        .followup-item:last-child {
+            border-bottom: none;
+        }
+
+    .followup-time {
+        min-width: 75px;
+        font-weight: 600;
+        color: #176c51;
+    }
+
+
+    /* Badges */
+
+    .badge {
+        padding: 7px 12px;
+        border-radius: 20px;
+        font-weight: 500;
+    }
+
+
+
+
+
 }
