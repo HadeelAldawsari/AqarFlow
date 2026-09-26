@@ -1,0 +1,224 @@
+﻿@model IEnumerable<AqarFlow.DTOs.PropertyDto>
+@{
+    ViewData["Title"] = "Properties";
+}
+
+<div class="container-fluid">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+
+        <div>
+            <h2 class="fw-bold mb-1">Properties</h2>
+
+            <p class="text-muted mb-0">
+                Manage all real estate properties
+            </p>
+        </div>
+
+        <a asp-controller="Properties"
+           asp-action="Create"
+           class="btn btn-success">
+
+            <i class="bi bi-plus-lg"></i>
+            Add Property
+
+        </a>
+
+    </div>
+
+
+    <div class="card shadow-sm border-0">
+
+        <div class="card-body">
+
+            @if (Model != null && Model.Any())
+            {
+                <div class="table-responsive">
+
+                    <table class="table align-middle">
+
+                        <thead>
+                            <tr>
+                                <th>Property</th>
+                                <th>Type</th>
+                                <th>Location</th>
+                                <th>Price</th>
+                                <th>Status</th>
+                                <th class="text-end">Actions</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+
+                            @foreach (var property in Model)
+                            {
+                                <tr>
+
+                                    <!-- Property Image + Title -->
+                                    <td>
+
+                                        <div class="d-flex align-items-center gap-3">
+
+                                            @if (!string.IsNullOrEmpty(property.ImagePath))
+                                            {
+                                                <img src="@property.ImagePath"
+                                                     alt="@property.Title"
+                                                     style="
+                                                width: 70px;
+                                                height: 55px;
+                                                object-fit: cover;
+                                                border-radius: 8px;
+                                                " />
+                                            }
+                                            else
+                                            {
+                                                <div class="d-flex align-items-center justify-content-center bg-light"
+                                                     style="
+                                                    width: 70px;
+                                                    height: 55px;
+                                                    border-radius: 8px;
+                                                    ">
+
+                                                    <i class="bi bi-house-door fs-4 text-muted"></i>
+
+                                                </div>
+                                            }
+
+                                            <div>
+                                                <strong>
+                                                    @property.Title
+                                                </strong>
+                                            </div>
+
+                                        </div>
+
+                                    </td>
+
+
+                                    <!-- Property Type -->
+                                    <td>
+                                        @property.PropertyType
+                                    </td>
+
+
+                                    <!-- Location -->
+                                    <td>
+
+                                        @property.City
+
+                                        @if (!string.IsNullOrEmpty(property.Area))
+                                        {
+                                            <span>
+                                                - @property.Area
+                                            </span>
+                                        }
+
+                                    </td>
+
+
+                                    <!-- Price -->
+                                    <td>
+                                        @property.Price.ToString("N0") SAR
+                                    </td>
+
+
+                                    <!-- Status -->
+                                    <td>
+
+                                        @if (property.Status == "Available")
+                                        {
+                                            <span class="badge bg-success">
+                                                Available
+                                            </span>
+                                        }
+                                        else if (property.Status == "Reserved")
+                                        {
+                                            <span class="badge bg-warning text-dark">
+                                                Reserved
+                                            </span>
+                                        }
+                                        else if (property.Status == "Sold")
+                                        {
+                                            <span class="badge bg-secondary">
+                                                Sold
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-light text-dark">
+                                                @property.Status
+                                            </span>
+                                        }
+
+                                    </td>
+
+
+                                    <!-- Actions -->
+                                    <td class="text-end">
+
+                                        <a asp-action="Details"
+                                           asp-route-id="@property.Id"
+                                           class="btn btn-sm btn-outline-secondary">
+
+                                            View
+
+                                        </a>
+
+                                        <a asp-action="Edit"
+                                           asp-route-id="@property.Id"
+                                           class="btn btn-sm btn-outline-primary">
+
+                                            Edit
+
+                                        </a>
+
+                                        <a asp-action="Delete"
+                                           asp-route-id="@property.Id"
+                                           class="btn btn-sm btn-outline-danger">
+
+                                            Delete
+
+                                        </a>
+
+                                    </td>
+
+                                </tr>
+                            }
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-5">
+
+                    <i class="bi bi-building fs-1 text-muted"></i>
+
+                    <h5 class="mt-3">
+                        No properties yet
+                    </h5>
+
+                    <p class="text-muted">
+                        Add your first property to start managing your listings.
+                    </p>
+
+                    <a asp-controller="Properties"
+                       asp-action="Create"
+                       class="btn btn-success">
+
+                        <i class="bi bi-plus-lg"></i>
+                        Add Property
+
+                    </a>
+
+                </div>
+            }
+
+        </div>
+
+    </div>
+
+</div>

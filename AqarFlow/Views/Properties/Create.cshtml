@@ -1,0 +1,293 @@
+﻿@model AqarFlow.ViewModels.PropertyCreateViewModel
+
+@{
+    ViewData["Title"] = "Add Property";
+}
+
+<div class="container-fluid">
+
+    <div class="mb-4">
+        <h2 class="fw-bold mb-1">Add Property</h2>
+
+        <p class="text-muted mb-0">
+            Add a new property to AqarFlow
+        </p>
+    </div>
+
+    <div class="card shadow-sm border-0">
+
+        <div class="card-body p-4">
+
+            <!-- enctype is required for file upload -->
+            <form asp-action="Create"
+                  method="post"
+                  enctype="multipart/form-data">
+
+                @Html.AntiForgeryToken()
+
+                <div asp-validation-summary="ModelOnly"
+                     class="text-danger mb-3">
+                </div>
+
+                <div class="row">
+
+                    <!-- Property Title -->
+                    <div class="col-md-6 mb-3">
+
+                        <label asp-for="Title"
+                               class="form-label">
+                            Property Title
+                        </label>
+
+                        <input asp-for="Title"
+                               class="form-control"
+                               placeholder="Example: Modern Villa in Riyadh" />
+
+                        <span asp-validation-for="Title"
+                              class="text-danger">
+                        </span>
+
+                    </div>
+
+
+                    <!-- Property Type -->
+                    <div class="col-md-6 mb-3">
+
+                        <label asp-for="PropertyType"
+                               class="form-label">
+                            Property Type
+                        </label>
+
+                        <select asp-for="PropertyType"
+                                class="form-select">
+
+                            <option value="">
+                                Select property type
+                            </option>
+
+                            <option value="Villa">Villa</option>
+                            <option value="Apartment">Apartment</option>
+                            <option value="Land">Land</option>
+                            <option value="Building">Building</option>
+                            <option value="Office">Office</option>
+                            <option value="Shop">Shop</option>
+
+                        </select>
+
+                        <span asp-validation-for="PropertyType"
+                              class="text-danger">
+                        </span>
+
+                    </div>
+
+
+                    <!-- City -->
+                    <div class="col-md-6 mb-3">
+
+                        <label asp-for="City"
+                               class="form-label">
+                            City
+                        </label>
+
+                        <input asp-for="City"
+                               class="form-control"
+                               placeholder="Example: Riyadh" />
+
+                        <span asp-validation-for="City"
+                              class="text-danger">
+                        </span>
+
+                    </div>
+
+
+                    <!-- Area -->
+                    <div class="col-md-6 mb-3">
+
+                        <label asp-for="Area"
+                               class="form-label">
+                            Area
+                        </label>
+
+                        <input asp-for="Area"
+                               class="form-control"
+                               placeholder="Example: Al Malqa" />
+
+                    </div>
+
+
+                    <!-- Price -->
+                    <div class="col-md-6 mb-3">
+
+                        <label asp-for="Price"
+                               class="form-label">
+                            Price (SAR)
+                        </label>
+
+                        <input asp-for="Price"
+                               type="number"
+                               step="0.01"
+                               class="form-control"
+                               placeholder="Example: 1500000" />
+
+                        <span asp-validation-for="Price"
+                              class="text-danger">
+                        </span>
+
+                    </div>
+
+
+                    <!-- Property Size -->
+                    <div class="col-md-6 mb-3">
+
+                        <label asp-for="PropertySize"
+                               class="form-label">
+                            Property Size (m²)
+                        </label>
+
+                        <input asp-for="PropertySize"
+                               type="number"
+                               step="0.01"
+                               class="form-control"
+                               placeholder="Example: 350" />
+
+                    </div>
+
+
+                    <!-- Bedrooms -->
+                    <div class="col-md-6 mb-3">
+
+                        <label asp-for="Bedrooms"
+                               class="form-label">
+                            Bedrooms
+                        </label>
+
+                        <input asp-for="Bedrooms"
+                               type="number"
+                               class="form-control"
+                               placeholder="Example: 4" />
+
+                    </div>
+
+
+                    <!-- Bathrooms -->
+                    <div class="col-md-6 mb-3">
+
+                        <label asp-for="Bathrooms"
+                               class="form-label">
+                            Bathrooms
+                        </label>
+
+                        <input asp-for="Bathrooms"
+                               type="number"
+                               class="form-control"
+                               placeholder="Example: 3" />
+
+                    </div>
+
+
+                    <!-- Status -->
+                    <div class="col-md-6 mb-3">
+
+                        <label asp-for="Status"
+                               class="form-label">
+                            Status
+                        </label>
+
+                        <select asp-for="Status"
+                                class="form-select">
+
+                            <option value="Available">
+                                Available
+                            </option>
+
+                            <option value="Reserved">
+                                Reserved
+                            </option>
+
+                            <option value="Sold">
+                                Sold
+                            </option>
+
+                        </select>
+
+                    </div>
+
+
+                    <!-- Property Image -->
+                    <div class="col-md-6 mb-3">
+
+                        <label asp-for="ImageFile"
+                               class="form-label">
+                            Property Image
+                        </label>
+
+                        <input asp-for="ImageFile"
+                               type="file"
+                               class="form-control"
+                               accept="image/*" />
+
+                        <div class="form-text">
+                            Select an image for this property.
+                        </div>
+
+                        <span asp-validation-for="ImageFile"
+                              class="text-danger">
+                        </span>
+
+                    </div>
+
+
+                    <!-- Description -->
+                    <div class="col-12 mb-3">
+
+                        <label asp-for="Description"
+                               class="form-label">
+                            Description
+                        </label>
+
+                        <textarea asp-for="Description"
+                                  class="form-control"
+                                  rows="4"
+                                  placeholder="Write property details...">
+                        </textarea>
+
+                    </div>
+
+                </div>
+
+
+                <!-- Buttons -->
+                <div class="d-flex gap-2 mt-2">
+
+                    <button type="submit"
+                            class="btn btn-success">
+
+                        <i class="bi bi-check-lg"></i>
+                        Save Property
+
+                    </button>
+
+                    <a asp-action="Index"
+                       class="btn btn-outline-secondary">
+
+                        Cancel
+
+                    </a>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}
+

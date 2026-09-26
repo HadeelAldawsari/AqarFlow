@@ -1,0 +1,202 @@
+﻿@model AqarFlow.Models.CustomerPropertyInterest
+
+@{
+    ViewData["Title"] = "Edit Property Match";
+}
+
+<div class="container-fluid">
+
+    <!-- Page Header -->
+    <div class="mb-4">
+
+        <a asp-controller="CustomerPropertyInterests"
+           asp-action="Index"
+           class="text-decoration-none">
+
+            <i class="bi bi-arrow-left"></i>
+            Back to Property Matching
+
+        </a>
+
+        <h2 class="mt-3 mb-1">
+            Edit Property Match
+        </h2>
+
+        <p class="text-muted">
+            Update customer property matching information
+        </p>
+
+    </div>
+
+
+    <!-- Form Card -->
+    <div class="card border-0 shadow-sm">
+
+        <div class="card-body p-4">
+
+            <form asp-controller="CustomerPropertyInterests"
+                  asp-action="Edit"
+                  asp-route-id="@Model.Id"
+                  method="post">
+
+                @Html.AntiForgeryToken()
+
+                <!-- Match ID -->
+                <input type="hidden"
+                       asp-for="Id" />
+
+
+                <!-- Validation -->
+                <div asp-validation-summary="ModelOnly"
+                     class="text-danger mb-3">
+                </div>
+
+
+                <div class="row g-3">
+
+
+                    <!-- Customer -->
+                    <div class="col-md-6">
+
+                        <label asp-for="CustomerId"
+                               class="form-label">
+                            Customer
+                        </label>
+
+                        <select asp-for="CustomerId"
+                                asp-items="ViewBag.Customers"
+                                class="form-select">
+
+                            <option value="">
+                                Select Customer
+                            </option>
+
+                        </select>
+
+                        <span asp-validation-for="CustomerId"
+                              class="text-danger">
+                        </span>
+
+                    </div>
+
+
+                    <!-- Property -->
+                    <div class="col-md-6">
+
+                        <label asp-for="PropertyId"
+                               class="form-label">
+                            Property
+                        </label>
+
+                        <select asp-for="PropertyId"
+                                asp-items="ViewBag.Properties"
+                                class="form-select">
+
+                            <option value="">
+                                Select Property
+                            </option>
+
+                        </select>
+
+                        <span asp-validation-for="PropertyId"
+                              class="text-danger">
+                        </span>
+
+                    </div>
+
+
+                    <!-- Status -->
+                    <div class="col-md-6">
+
+                        <label asp-for="Status"
+                               class="form-label">
+                            Status
+                        </label>
+
+                        <select asp-for="Status"
+                                class="form-select">
+
+                            <option value="Interested">
+                                Interested
+                            </option>
+
+                            <option value="Viewing Scheduled">
+                                Viewing Scheduled
+                            </option>
+
+                            <option value="Offer Made">
+                                Offer Made
+                            </option>
+
+                            <option value="Not Interested">
+                                Not Interested
+                            </option>
+
+                        </select>
+
+                        <span asp-validation-for="Status"
+                              class="text-danger">
+                        </span>
+
+                    </div>
+
+
+                    <!-- Notes -->
+                    <div class="col-12">
+
+                        <label asp-for="Notes"
+                               class="form-label">
+                            Notes
+                        </label>
+
+                        <textarea asp-for="Notes"
+                                  class="form-control"
+                                  rows="4"
+                                  placeholder="Add notes about the customer's interest in this property..."></textarea>
+
+                        <span asp-validation-for="Notes"
+                              class="text-danger">
+                        </span>
+
+                    </div>
+
+                </div>
+
+
+                <!-- Buttons -->
+                <div class="d-flex justify-content-end gap-2 mt-4">
+
+                    <a asp-controller="CustomerPropertyInterests"
+                       asp-action="Index"
+                       class="btn btn-outline-secondary">
+
+                        Cancel
+
+                    </a>
+
+                    <button type="submit"
+                            class="btn btn-success">
+
+                        <i class="bi bi-check-lg"></i>
+                        Save Changes
+
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+@section Scripts {
+
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+}

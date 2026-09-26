@@ -1,0 +1,211 @@
+﻿@model IEnumerable<AqarFlow.DTOs.DealDto>
+
+@{
+    ViewData["Title"] = "Deals";
+}
+
+<div class="container-fluid">
+
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+
+        <div>
+            <h2 class="mb-1">Deals</h2>
+
+            <p class="text-muted mb-0">
+                Manage real estate deals and transactions
+            </p>
+        </div>
+
+        <a asp-controller="Deals"
+           asp-action="Create"
+           class="btn btn-success">
+
+            <i class="bi bi-plus-lg"></i>
+            Add Deal
+
+        </a>
+
+    </div>
+
+
+    <!-- Deals Table -->
+    <div class="card border-0 shadow-sm">
+
+        <div class="card-body">
+
+            @if (Model != null && Model.Any())
+            {
+                <div class="table-responsive">
+
+                    <table class="table align-middle">
+
+                        <thead>
+                            <tr>
+                                <th>Customer</th>
+                                <th>Property</th>
+                                <th>Deal Type</th>
+                                <th>Deal Value</th>
+                                <th>Commission</th>
+                                <th>Deal Date</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+
+                            @foreach (var deal in Model)
+                            {
+                                <tr>
+
+                                    <!-- Customer -->
+                                    <td>
+                                        <strong>
+                                            @deal.CustomerName
+                                        </strong>
+                                    </td>
+
+
+                                    <!-- Property -->
+                                    <td>
+                                        @deal.PropertyTitle
+                                    </td>
+
+
+                                    <!-- Deal Type -->
+                                    <td>
+                                        @deal.DealType
+                                    </td>
+
+
+                                    <!-- Deal Value -->
+                                    <td>
+                                        @if (deal.DealValue.HasValue)
+                                        {
+                                            @deal.DealValue.Value.ToString("N2")
+                                        }
+                                        else
+                                        {
+                                            <span>-</span>
+                                        }
+                                    </td>
+
+
+                                    <!-- Commission -->
+                                    <td>
+                                        @if (deal.Commission.HasValue)
+                                        {
+                                            @deal.Commission.Value.ToString("N2")
+                                        }
+                                        else
+                                        {
+                                            <span>-</span>
+                                        }
+                                    </td>
+
+
+                                    <!-- Deal Date -->
+                                    <td>
+                                        @if (deal.DealDate.HasValue)
+                                        {
+                                            @deal.DealDate.Value.ToString("dd MMM yyyy")
+                                        }
+                                        else
+                                        {
+                                            <span>-</span>
+                                        }
+                                    </td>
+
+
+                                    <!-- Status -->
+                                    <td>
+
+                                        @if (deal.Status == "Closed")
+                                        {
+                                            <span class="badge bg-success">
+                                                Closed
+                                            </span>
+                                        }
+                                        else if (deal.Status == "Cancelled")
+                                        {
+                                            <span class="badge bg-danger">
+                                                Cancelled
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-warning text-dark">
+                                                @deal.Status
+                                            </span>
+                                        }
+
+                                    </td>
+
+
+                                    <!-- Actions -->
+                                    <td>
+
+                                        <a asp-controller="Deals"
+                                           asp-action="Edit"
+                                           asp-route-id="@deal.Id"
+                                           class="btn btn-sm btn-outline-primary">
+
+                                            <i class="bi bi-pencil"></i>
+                                            Edit
+
+                                        </a>
+
+                                        <a asp-controller="Deals"
+                                           asp-action="Delete"
+                                           asp-route-id="@deal.Id"
+                                           class="btn btn-sm btn-outline-danger">
+
+                                            <i class="bi bi-trash"></i>
+                                            Delete
+
+                                        </a>
+
+                                    </td>
+
+                                </tr>
+                            }
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+            }
+            else
+            {
+                <!-- Empty State -->
+                <div class="text-center py-5">
+
+                    <i class="bi bi-handshake fs-1 text-muted"></i>
+
+                    <h5 class="mt-3">
+                        No deals yet
+                    </h5>
+
+                    <p class="text-muted">
+                        Add your first real estate deal.
+                    </p>
+
+                    <a asp-controller="Deals"
+                       asp-action="Create"
+                       class="btn btn-success">
+
+                        <i class="bi bi-plus-lg"></i>
+                        Add Deal
+
+                    </a>
+
+                </div>
+            }
+
+        </div>
+
+    </div>
+
+</div>

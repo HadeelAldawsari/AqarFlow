@@ -1,18 +1,28 @@
-﻿using AqarFlow.Data;
-using AqarFlow.Models;
+﻿using AqarFlow.Models;
+using AqarFlow.Repositories;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AqarFlow.Controllers
 {
     // Roles Controller:
     // Handles role management and assigning permissions to roles.
+
+    [Authorize(Roles = "Admin")]
     public class RolesController : Controller
     {
-        private readonly AppDbContext _db;
+        private readonly IRoleRepository _roleRepository;
+        private readonly IPermissionRepository _permissionRepository;
+        private readonly IPermissionRoleRepository _permissionRoleRepository;
 
-        public RolesController(AppDbContext db)
+        public RolesController(
+            IRoleRepository roleRepository,
+            IPermissionRepository permissionRepository,
+            IPermissionRoleRepository permissionRoleRepository)
         {
-            _db = db;
+            _roleRepository = roleRepository;
+            _permissionRepository = permissionRepository;
+            _permissionRoleRepository = permissionRoleRepository;
         }
 
 
@@ -22,7 +32,7 @@ namespace AqarFlow.Controllers
         // =========================
         public IActionResult Index()
         {
-            var roles = _db.Roles.ToList();
+            var roles = _roleRepository.GetAll();
 
             return View(roles);
         }
@@ -37,11 +47,11 @@ namespace AqarFlow.Controllers
         {
             if (ModelState.IsValid)
             {
-                _db.Roles.Add(role);
-                _db.SaveChanges();
+                _roleRepository.Add(role);
+                _roleRepository.Save();
             }
 
-            return RedirectToAction("Index");
+            return RedirectToAction(nameof(Index));
         }
 
 
@@ -54,11 +64,11 @@ namespace AqarFlow.Controllers
         {
             if (ModelState.IsValid)
             {
-                _db.Roles.Update(role);
-                _db.SaveChanges();
+                _roleRepository.Update(role);
+                _roleRepository.Save();
             }
 
-            return RedirectToAction("Index");
+            return RedirectToAction(nameof(Index));
         }
 
 
@@ -69,40 +79,38 @@ namespace AqarFlow.Controllers
         [HttpPost]
         public IActionResult Delete(int id)
         {
-            var role = _db.Roles.Find(id);
+            var role = _roleRepository.GetById(id);
 
             if (role != null)
             {
-                _db.Roles.Remove(role);
-                _db.SaveChanges();
+                _roleRepository.Delete(role);
+                _roleRepository.Save();
             }
 
-            return RedirectToAction("Index");
+            return RedirectToAction(nameof(Index));
         }
 
 
         // =========================
         // ASSIGN PERMISSIONS - GET
-        // Display all permissions for the selected role
+        // Display permissions for selected role
         // =========================
         [HttpGet]
         public IActionResult AssignPermissions(int roleId)
         {
-            var role = _db.Roles.Find(roleId);
+            var role = _roleRepository.GetById(roleId);
 
             if (role == null)
             {
                 return NotFound();
             }
 
-            // Get all permissions
-            var allPermissions = _db.Permissions.ToList();
+            var allPermissions =
+                _permissionRepository.GetAll();
 
-            // Get permissions already assigned to this role
-            var assignedPermissionIds = _db.PermissionRoles
-                .Where(pr => pr.RoleId == roleId)
-                .Select(pr => pr.PermissionId)
-                .ToList();
+            var assignedPermissionIds =
+                _permissionRoleRepository
+                    .GetPermissionIdsByRoleId(roleId);
 
             ViewBag.Role = role;
             ViewBag.AllPermissions = allPermissions;
@@ -114,46 +122,44 @@ namespace AqarFlow.Controllers
 
         // =========================
         // ASSIGN PERMISSIONS - POST
-        // Save selected permissions for the role
+        // Save selected permissions
         // =========================
         [HttpPost]
         public IActionResult AssignPermissions(
             int roleId,
             List<int> permissionIds)
         {
-            var role = _db.Roles.Find(roleId);
+            var role = _roleRepository.GetById(roleId);
 
             if (role == null)
             {
                 return NotFound();
             }
 
-            // Get old permissions for this role
-            var oldPermissions = _db.PermissionRoles
-                .Where(pr => pr.RoleId == roleId)
-                .ToList();
-
             // Remove old permissions
-            _db.PermissionRoles.RemoveRange(oldPermissions);
+            _permissionRoleRepository
+                .DeleteByRoleId(roleId);
 
             // Add selected permissions
             foreach (var permissionId in permissionIds)
             {
-                var permissionRole = new PermissionRole
-                {
-                    RoleId = roleId,
-                    PermissionId = permissionId
-                };
+                var permissionRole =
+                    new PermissionRole
+                    {
+                        RoleId = roleId,
+                        PermissionId = permissionId
+                    };
 
-                _db.PermissionRoles.Add(permissionRole);
+                _permissionRoleRepository.Add(
+                    permissionRole
+                );
             }
 
-            // Save changes
-            _db.SaveChanges();
+            _permissionRoleRepository.Save();
 
             return RedirectToAction(
-                "AssignPermissions",
-                new { roleId = roleId });
+                nameof(AssignPermissions),
+                new { roleId });
         }
     }
 }

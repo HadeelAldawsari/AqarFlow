@@ -1,23 +1,23 @@
-﻿using AqarFlow.Data;
-using AqarFlow.Models;
+﻿using AqarFlow.Models;
+using AqarFlow.Repositories;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AqarFlow.Controllers
-
-
 {
     // Customers Controller:
-    // Handles customer-related pages and database operations.
+    // Handles customer-related pages and operations.
 
-
+    // Only logged-in users can access Customers
+    [Authorize]
     public class CustomersController : Controller
     {
-        private readonly AppDbContext _db;
+        private readonly ICustomerRepository _customerRepository;
 
-        // Receives the database context
-        public CustomersController(AppDbContext db)
+        // Receives the customer repository
+        public CustomersController(ICustomerRepository customerRepository)
         {
-            _db = db;
+            _customerRepository = customerRepository;
         }
 
 
@@ -27,7 +27,7 @@ namespace AqarFlow.Controllers
         // =========================
         public IActionResult Index()
         {
-            var customers = _db.Customers.ToList();
+            var customers = _customerRepository.GetAll();
 
             return View(customers);
         }
@@ -49,6 +49,7 @@ namespace AqarFlow.Controllers
         // Saves the new customer to the database
         // =========================
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public IActionResult Create(Customer customer)
         {
             if (ModelState.IsValid)
@@ -56,10 +57,10 @@ namespace AqarFlow.Controllers
                 customer.Status = "New";
                 customer.CreatedAt = DateTime.Now;
 
-                _db.Customers.Add(customer);
-                _db.SaveChanges();
+                _customerRepository.Add(customer);
+                _customerRepository.Save();
 
-                return RedirectToAction("Index");
+                return RedirectToAction(nameof(Index));
             }
 
             return View(customer);
@@ -73,7 +74,7 @@ namespace AqarFlow.Controllers
         [HttpGet]
         public IActionResult Edit(int id)
         {
-            var customer = _db.Customers.Find(id);
+            var customer = _customerRepository.GetById(id);
 
             if (customer == null)
             {
@@ -89,19 +90,42 @@ namespace AqarFlow.Controllers
         // Saves the updated customer data
         // =========================
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public IActionResult Edit(Customer customer)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
-                customer.UpdatedAt = DateTime.Now;
-
-                _db.Customers.Update(customer);
-                _db.SaveChanges();
-
-                return RedirectToAction("Index");
+                return View(customer);
             }
 
-            return View(customer);
+            var existingCustomer =
+                _customerRepository.GetById(customer.Id);
+
+            if (existingCustomer == null)
+            {
+                return NotFound();
+            }
+
+            // Update customer information
+            existingCustomer.Name = customer.Name;
+            existingCustomer.Phone = customer.Phone;
+            existingCustomer.Email = customer.Email;
+            existingCustomer.Purpose = customer.Purpose;
+            existingCustomer.PropertyType = customer.PropertyType;
+            existingCustomer.PreferredCity = customer.PreferredCity;
+            existingCustomer.PreferredArea = customer.PreferredArea;
+            existingCustomer.MinBudget = customer.MinBudget;
+            existingCustomer.MaxBudget = customer.MaxBudget;
+            existingCustomer.Bedrooms = customer.Bedrooms;
+            existingCustomer.Status = customer.Status;
+            existingCustomer.Source = customer.Source;
+            existingCustomer.Notes = customer.Notes;
+            existingCustomer.UpdatedAt = DateTime.Now;
+
+            _customerRepository.Update(existingCustomer);
+            _customerRepository.Save();
+
+            return RedirectToAction(nameof(Index));
         }
 
 
@@ -112,7 +136,7 @@ namespace AqarFlow.Controllers
         [HttpGet]
         public IActionResult Delete(int id)
         {
-            var customer = _db.Customers.Find(id);
+            var customer = _customerRepository.GetById(id);
 
             if (customer == null)
             {
@@ -128,22 +152,20 @@ namespace AqarFlow.Controllers
         // Deletes the customer from the database
         // =========================
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public IActionResult DeleteConfirmed(int id)
         {
-            var customer = _db.Customers.Find(id);
+            var customer = _customerRepository.GetById(id);
 
             if (customer == null)
             {
                 return NotFound();
             }
 
-            _db.Customers.Remove(customer);
-            _db.SaveChanges();
+            _customerRepository.Delete(customer);
+            _customerRepository.Save();
 
-            return RedirectToAction("Index");
-
-
-
+            return RedirectToAction(nameof(Index));
         }
     }
 }

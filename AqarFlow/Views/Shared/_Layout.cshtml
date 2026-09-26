@@ -1,153 +1,345 @@
-﻿<!DOCTYPE html>
-<html lang="en">
+﻿@using System.Security.Claims
+@using System.Globalization
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<SharedResource> Localizer
+
+@{
+    // Get current language
+    var currentCulture = CultureInfo.CurrentUICulture.Name;
+
+    // Check if current language is Arabic
+    var isArabic = currentCulture.StartsWith("ar");
+
+    // Set page direction
+    var pageDirection = isArabic ? "rtl" : "ltr";
+
+    // Current page URL
+    var returnUrl =
+        Context.Request.Path +
+        Context.Request.QueryString;
+}
+
+<!DOCTYPE html>
+
+<html lang="@currentCulture"
+      dir="@pageDirection">
+
 <head>
+
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0" />
 
     <title>@ViewData["Title"] - AqarFlow</title>
 
-    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/AqarFlow.styles.css" asp-append-version="true" />
+    <link rel="stylesheet"
+          href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+
+    <link rel="stylesheet"
+          href="~/css/site.css"
+          asp-append-version="true" />
+
+    <link rel="stylesheet"
+          href="~/AqarFlow.styles.css"
+          asp-append-version="true" />
 
     <!-- Bootstrap Icons -->
     <link rel="stylesheet"
           href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+
 </head>
+
 
 <body>
 
+    @{
+        // Get logged-in user information
+        var userName =
+            User.Identity?.Name ?? "User";
+
+        var userRole =
+            User.FindFirst(ClaimTypes.Role)?.Value ?? "User";
+
+
+        // Create profile initials
+        var nameParts = userName.Split(
+            ' ',
+            StringSplitOptions.RemoveEmptyEntries
+        );
+
+        var initials = nameParts.Length >= 2
+            ? $"{nameParts[0][0]}{nameParts[1][0]}"
+            : userName.Length >= 2
+                ? userName.Substring(0, 2)
+                : userName;
+    }
+
+
     <div class="app-wrapper">
 
-        <!-- Sidebar -->
+
+        <!-- ========================= -->
+        <!-- SIDEBAR -->
+        <!-- ========================= -->
+
         <aside class="sidebar">
+
 
             <!-- Logo -->
             <div class="sidebar-logo">
 
                 <div class="logo-icon">
+
                     <i class="bi bi-buildings"></i>
+
                 </div>
 
+
                 <div>
-                    <h3>AqarFlow</h3>
-                    <span>Real Estate CRM</span>
+
+                    <h3>
+                        AqarFlow
+                    </h3>
+
+                    <span>
+                        Real Estate CRM
+                    </span>
+
                 </div>
 
             </div>
 
 
-            <!-- Navigation -->
+
+            <!-- ========================= -->
+            <!-- NAVIGATION -->
+            <!-- ========================= -->
+
             <nav class="sidebar-menu">
 
+
+                <!-- Dashboard -->
                 <a asp-controller="Home"
                    asp-action="Index"
                    class="sidebar-link">
 
                     <i class="bi bi-grid-fill"></i>
-                    <span>Dashboard</span>
+
+                    <span>
+                        @Localizer["Dashboard"]
+                    </span>
+
                 </a>
 
 
+                <!-- Customers -->
                 <a asp-controller="Customers"
                    asp-action="Index"
                    class="sidebar-link">
 
                     <i class="bi bi-people"></i>
-                    <span>Customers</span>
+
+                    <span>
+                        @Localizer["Customers"]
+                    </span>
+
                 </a>
 
 
-                <a href="#"
+                <!-- Properties -->
+                <a asp-controller="Properties"
+                   asp-action="Index"
                    class="sidebar-link">
 
                     <i class="bi bi-building"></i>
-                    <span>Properties</span>
+
+                    <span>
+                        @Localizer["Properties"]
+                    </span>
+
                 </a>
 
 
-                <a href="#"
+                <!-- Property Matching -->
+                <a asp-controller="CustomerPropertyInterests"
+                   asp-action="Index"
+                   class="sidebar-link">
+
+                    <i class="bi bi-house-heart"></i>
+
+                    <span>
+                        @Localizer["PropertyMatching"]
+                    </span>
+
+                </a>
+
+
+                <!-- Follow-ups -->
+                <a asp-controller="FollowUps"
+                   asp-action="Index"
                    class="sidebar-link">
 
                     <i class="bi bi-calendar-check"></i>
-                    <span>Follow-ups</span>
+
+                    <span>
+                        @Localizer["FollowUps"]
+                    </span>
+
                 </a>
 
 
-                <a href="#"
+                <!-- Deals -->
+                <a asp-controller="Deals"
+                   asp-action="Index"
                    class="sidebar-link">
 
                     <i class="bi bi-handshake"></i>
-                    <span>Deals</span>
+
+                    <span>
+                        @Localizer["Deals"]
+                    </span>
+
                 </a>
 
 
-                <div class="sidebar-divider"></div>
 
-                <p class="sidebar-section-title">
-                    MANAGEMENT
-                </p>
-
-
-                <a asp-controller="Roles"
-                   asp-action="Index"
-                   class="sidebar-link">
-
-                    <i class="bi bi-person-badge"></i>
-                    <span>Roles</span>
-                </a>
+                <!-- ========================= -->
+                <!-- ADMIN MANAGEMENT -->
+                <!-- ========================= -->
+                @if (User.IsInRole("Admin"))
+                {
+                    <div class="sidebar-divider">
+                    </div>
 
 
-                <a asp-controller="Permissions"
-                   asp-action="Index"
-                   class="sidebar-link">
-
-                    <i class="bi bi-shield-lock"></i>
-                    <span>Permissions</span>
-                </a>
+                    <p class="sidebar-section-title">
+                        @Localizer["Management"]
+                    </p>
 
 
-                <div class="sidebar-divider"></div>
+                    <!-- Users -->
+                    <a asp-controller="Users"
+                       asp-action="Index"
+                       class="sidebar-link">
+
+                        <i class="bi bi-person"></i>
+
+                        <span>
+                            @Localizer["Users"]
+                        </span>
+
+                    </a>
 
 
+                    <!-- Roles -->
+                    <a asp-controller="Roles"
+                       asp-action="Index"
+                       class="sidebar-link">
+
+                        <i class="bi bi-person-badge"></i>
+
+                        <span>
+                            @Localizer["Roles"]
+                        </span>
+
+                    </a>
+
+
+                    <!-- Permissions -->
+                    <a asp-controller="Permissions"
+                       asp-action="Index"
+                       class="sidebar-link">
+
+                        <i class="bi bi-shield-lock"></i>
+
+                        <span>
+                            @Localizer["Permissions"]
+                        </span>
+
+                    </a>
+                }
+
+
+
+                <div class="sidebar-divider">
+                </div>
+
+
+
+                <!-- Settings -->
                 <a href="#"
                    class="sidebar-link">
 
                     <i class="bi bi-gear"></i>
-                    <span>Settings</span>
+
+                    <span>
+                        @Localizer["Settings"]
+                    </span>
+
                 </a>
 
             </nav>
 
 
-            <!-- Sidebar Footer -->
+
+            <!-- ========================= -->
+            <!-- SIDEBAR FOOTER -->
+            <!-- ========================= -->
+
             <div class="sidebar-footer">
-                <p>Great Opportunities.</p>
-                <strong>Better Decisions.</strong>
+
+                <p>
+                    Great Opportunities.
+                </p>
+
+                <strong>
+                    Better Decisions.
+                </strong>
+
             </div>
 
         </aside>
 
 
-        <!-- Main Area -->
+
+        <!-- ========================= -->
+        <!-- MAIN AREA -->
+        <!-- ========================= -->
+
         <div class="main-area">
 
-            <!-- Top Bar -->
+
+            <!-- ========================= -->
+            <!-- TOP BAR -->
+            <!-- ========================= -->
+
             <header class="topbar">
 
+
                 <div>
+
                     <h4 class="mb-0">
-                        Good Morning, Hadeel 👋
+
+                        Good Morning, @userName 👋
+
                     </h4>
 
+
                     <small class="text-muted">
+
                         Welcome back to AqarFlow
+
                     </small>
+
                 </div>
+
 
 
                 <div class="topbar-right">
 
+
+                    <!-- Search -->
                     <div class="search-box">
 
                         <i class="bi bi-search"></i>
@@ -158,25 +350,100 @@
                     </div>
 
 
+
+                    <!-- ========================= -->
+                    <!-- LANGUAGE SWITCHER -->
+                    <!-- ========================= -->
+
+                    <div class="d-flex align-items-center gap-1">
+
+                        <a asp-controller="Language"
+                           asp-action="SetLanguage"
+                           asp-route-culture="en"
+                           asp-route-returnUrl="@returnUrl"
+                           class="btn btn-sm @(isArabic ? "btn-outline-secondary" : "btn-dark")">
+
+                            English
+
+                        </a>
+
+
+                        <a asp-controller="Language"
+                           asp-action="SetLanguage"
+                           asp-route-culture="ar"
+                           asp-route-returnUrl="@returnUrl"
+                           class="btn btn-sm @(!isArabic ? "btn-outline-secondary" : "btn-dark")">
+
+                            العربية
+
+                        </a>
+
+                    </div>
+
+
+
+                    <!-- ========================= -->
+                    <!-- PROFILE -->
+                    <!-- ========================= -->
+
                     <div class="profile-box">
 
                         <div class="profile-circle">
-                            HD
+
+                            @initials.ToUpper()
+
                         </div>
 
+
                         <div>
-                            <strong>Hadeel</strong>
-                            <small>Admin</small>
+
+                            <strong>
+                                @userName
+                            </strong>
+
+                            <small>
+                                @userRole
+                            </small>
+
                         </div>
 
                     </div>
+
+
+
+                    <!-- ========================= -->
+                    <!-- LOGOUT -->
+                    <!-- ========================= -->
+
+                    <form asp-controller="Accounts"
+                          asp-action="Logout"
+                          method="post"
+                          class="m-0">
+
+                        @Html.AntiForgeryToken()
+
+
+                        <button type="submit"
+                                class="btn btn-outline-danger btn-sm">
+
+                            <i class="bi bi-box-arrow-right"></i>
+
+                            @Localizer["Logout"]
+
+                        </button>
+
+                    </form>
 
                 </div>
 
             </header>
 
 
-            <!-- Page Content -->
+
+            <!-- ========================= -->
+            <!-- PAGE CONTENT -->
+            <!-- ========================= -->
+
             <main class="content-area">
 
                 @RenderBody()
@@ -184,7 +451,11 @@
             </main>
 
 
-            <!-- Footer -->
+
+            <!-- ========================= -->
+            <!-- FOOTER -->
+            <!-- ========================= -->
+
             <footer class="app-footer">
 
                 <span>
@@ -202,11 +473,27 @@
     </div>
 
 
-    <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="~/js/site.js" asp-append-version="true"></script>
 
-    @await RenderSectionAsync("Scripts", required: false)
+    <!-- ========================= -->
+    <!-- SCRIPTS -->
+    <!-- ========================= -->
+
+    <script src="~/lib/jquery/dist/jquery.min.js">
+    </script>
+
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js">
+    </script>
+
+    <script src="~/js/site.js"
+            asp-append-version="true">
+    </script>
+
+
+    @await RenderSectionAsync(
+        "Scripts",
+        required: false
+    )
 
 </body>
+
 </html>

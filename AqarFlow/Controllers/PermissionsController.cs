@@ -1,19 +1,22 @@
-﻿using AqarFlow.Data;
-using AqarFlow.Models;
+﻿using AqarFlow.Models;
+using AqarFlow.Repositories;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AqarFlow.Controllers
 {
     // Permissions Controller:
     // Handles permission management in the system.
+
+    [Authorize(Roles = "Admin")]
     public class PermissionsController : Controller
     {
-        private readonly AppDbContext _db;
+        private readonly IPermissionRepository _permissionRepository;
 
-        // Receive database context
-        public PermissionsController(AppDbContext db)
+        public PermissionsController(
+            IPermissionRepository permissionRepository)
         {
-            _db = db;
+            _permissionRepository = permissionRepository;
         }
 
 
@@ -23,7 +26,8 @@ namespace AqarFlow.Controllers
         // =========================
         public IActionResult Index()
         {
-            var permissions = _db.Permissions.ToList();
+            var permissions =
+                _permissionRepository.GetAll();
 
             return View(permissions);
         }
@@ -38,11 +42,11 @@ namespace AqarFlow.Controllers
         {
             if (ModelState.IsValid)
             {
-                _db.Permissions.Add(permission);
-                _db.SaveChanges();
+                _permissionRepository.Add(permission);
+                _permissionRepository.Save();
             }
 
-            return RedirectToAction("Index");
+            return RedirectToAction(nameof(Index));
         }
 
 
@@ -55,11 +59,11 @@ namespace AqarFlow.Controllers
         {
             if (ModelState.IsValid)
             {
-                _db.Permissions.Update(permission);
-                _db.SaveChanges();
+                _permissionRepository.Update(permission);
+                _permissionRepository.Save();
             }
 
-            return RedirectToAction("Index");
+            return RedirectToAction(nameof(Index));
         }
 
 
@@ -70,15 +74,16 @@ namespace AqarFlow.Controllers
         [HttpPost]
         public IActionResult Delete(int id)
         {
-            var permission = _db.Permissions.Find(id);
+            var permission =
+                _permissionRepository.GetById(id);
 
             if (permission != null)
             {
-                _db.Permissions.Remove(permission);
-                _db.SaveChanges();
+                _permissionRepository.Delete(permission);
+                _permissionRepository.Save();
             }
 
-            return RedirectToAction("Index");
+            return RedirectToAction(nameof(Index));
         }
     }
 }

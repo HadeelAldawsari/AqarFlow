@@ -379,7 +379,7 @@
                     <div class="followup-item">
 
                         <div class="followup-time">
-                            @followUp.NextFollowUpDate.Value.ToString("hh:mm tt")
+                            @followUp.NextFollowUpDate.ToString("hh:mm tt")
                         </div>
 
                         <div>
@@ -397,7 +397,7 @@
                             </p>
 
                             <small class="text-muted">
-                                @followUp.NextFollowUpDate.Value.ToString("dd MMM yyyy")
+                                @followUp.NextFollowUpDate.ToString("dd MMM yyyy")
                             </small>
 
                         </div>

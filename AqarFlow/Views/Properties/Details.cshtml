@@ -1,0 +1,300 @@
+﻿@model AqarFlow.Models.Property
+
+@{
+    ViewData["Title"] = "Property Details";
+}
+
+<div class="container-fluid">
+
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+
+        <div>
+            <h2 class="fw-bold mb-1">Property Details</h2>
+
+            <p class="text-muted mb-0">
+                View property information
+            </p>
+        </div>
+
+        <a asp-action="Index"
+           class="btn btn-outline-secondary">
+
+            <i class="bi bi-arrow-left"></i>
+            Back to Properties
+
+        </a>
+
+    </div>
+
+
+    <div class="card shadow-sm border-0">
+
+        <div class="card-body p-4">
+
+
+            <!-- ========================= -->
+            <!-- PROPERTY IMAGE -->
+            <!-- ========================= -->
+            @if (!string.IsNullOrEmpty(Model.ImagePath))
+            {
+                <div class="mb-4">
+
+                    <img src="@Model.ImagePath"
+                         alt="@Model.Title"
+                         class="img-fluid"
+                         style="
+                    width: 100%;
+                    max-height: 420px;
+                    object-fit: cover;
+                    border-radius: 12px;
+                    " />
+
+                </div>
+            }
+            else
+            {
+                <div class="mb-4
+                    d-flex
+                    align-items-center
+                    justify-content-center
+                    bg-light"
+                     style="
+                    width: 100%;
+                    height: 250px;
+                    border-radius: 12px;
+                    ">
+
+                    <div class="text-center text-muted">
+
+                        <i class="bi bi-house-door"
+                           style="font-size: 50px;">
+                        </i>
+
+                        <p class="mt-2 mb-0">
+                            No property image
+                        </p>
+
+                    </div>
+
+                </div>
+            }
+
+
+            <!-- ========================= -->
+            <!-- PROPERTY INFORMATION -->
+            <!-- ========================= -->
+
+            <div class="row">
+
+
+                <!-- Property Title -->
+                <div class="col-md-6 mb-4">
+
+                    <small class="text-muted">
+                        Property Title
+                    </small>
+
+                    <h5 class="mt-1">
+                        @Model.Title
+                    </h5>
+
+                </div>
+
+
+                <!-- Property Type -->
+                <div class="col-md-6 mb-4">
+
+                    <small class="text-muted">
+                        Property Type
+                    </small>
+
+                    <h5 class="mt-1">
+                        @Model.PropertyType
+                    </h5>
+
+                </div>
+
+
+                <!-- City -->
+                <div class="col-md-6 mb-4">
+
+                    <small class="text-muted">
+                        City
+                    </small>
+
+                    <h5 class="mt-1">
+                        @Model.City
+                    </h5>
+
+                </div>
+
+
+                <!-- Area -->
+                <div class="col-md-6 mb-4">
+
+                    <small class="text-muted">
+                        Area
+                    </small>
+
+                    <h5 class="mt-1">
+
+                        @(string.IsNullOrEmpty(Model.Area)
+                            ? "-"
+                            : Model.Area)
+
+                    </h5>
+
+                </div>
+
+
+                <!-- Price -->
+                <div class="col-md-6 mb-4">
+
+                    <small class="text-muted">
+                        Price
+                    </small>
+
+                    <h5 class="mt-1">
+                        @Model.Price.ToString("N0") SAR
+                    </h5>
+
+                </div>
+
+
+                <!-- Property Size -->
+                <div class="col-md-6 mb-4">
+
+                    <small class="text-muted">
+                        Property Size
+                    </small>
+
+                    <h5 class="mt-1">
+
+                        @(Model.PropertySize.HasValue
+                            ? Model.PropertySize.Value.ToString("N0") + " m²"
+                            : "-")
+
+                    </h5>
+
+                </div>
+
+
+                <!-- Bedrooms -->
+                <div class="col-md-6 mb-4">
+
+                    <small class="text-muted">
+                        Bedrooms
+                    </small>
+
+                    <h5 class="mt-1">
+                        @(Model.Bedrooms?.ToString() ?? "-")
+                    </h5>
+
+                </div>
+
+
+                <!-- Bathrooms -->
+                <div class="col-md-6 mb-4">
+
+                    <small class="text-muted">
+                        Bathrooms
+                    </small>
+
+                    <h5 class="mt-1">
+                        @(Model.Bathrooms?.ToString() ?? "-")
+                    </h5>
+
+                </div>
+
+
+                <!-- Status -->
+                <div class="col-md-6 mb-4">
+
+                    <small class="text-muted">
+                        Status
+                    </small>
+
+                    <div class="mt-1">
+
+                        @if (Model.Status == "Available")
+                        {
+                            <span class="badge bg-success">
+                                Available
+                            </span>
+                        }
+                        else if (Model.Status == "Reserved")
+                        {
+                            <span class="badge bg-warning text-dark">
+                                Reserved
+                            </span>
+                        }
+                        else if (Model.Status == "Sold")
+                        {
+                            <span class="badge bg-secondary">
+                                Sold
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-light text-dark">
+                                @Model.Status
+                            </span>
+                        }
+
+                    </div>
+
+                </div>
+
+
+                <!-- Description -->
+                <div class="col-12 mb-4">
+
+                    <small class="text-muted">
+                        Description
+                    </small>
+
+                    <p class="mt-1 mb-0">
+
+                        @(string.IsNullOrEmpty(Model.Description)
+                            ? "No description"
+                            : Model.Description)
+
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <hr />
+
+
+            <!-- Actions -->
+            <div class="d-flex gap-2">
+
+                <a asp-action="Edit"
+                   asp-route-id="@Model.Id"
+                   class="btn btn-success">
+
+                    <i class="bi bi-pencil"></i>
+                    Edit Property
+
+                </a>
+
+                <a asp-action="Delete"
+                   asp-route-id="@Model.Id"
+                   class="btn btn-outline-danger">
+
+                    <i class="bi bi-trash"></i>
+                    Delete
+
+                </a>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>

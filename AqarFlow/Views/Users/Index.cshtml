@@ -1,0 +1,163 @@
+﻿@model IEnumerable<AqarFlow.DTOs.UserDto>
+
+@{
+    ViewData["Title"] = "Users";
+}
+
+<div class="container-fluid">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+
+        <div>
+            <h2 class="fw-bold mb-1">Users</h2>
+            <p class="text-muted mb-0">
+                Manage system users and their roles
+            </p>
+        </div>
+
+        <a asp-controller="Users"
+           asp-action="Create"
+           class="btn btn-success">
+            + Add User
+        </a>
+
+    </div>
+
+
+    <div class="card shadow-sm border-0">
+
+        <div class="card-body">
+
+            @if (Model != null && Model.Any())
+            {
+                <div class="table-responsive">
+
+                    <table class="table align-middle">
+
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Role</th>
+                                <th>Status</th>
+                                <th>Created</th>
+                                <th class="text-end">Actions</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+
+                            @foreach (var user in Model)
+                            {
+                                <tr>
+
+                                    <!-- Name -->
+                                    <td>
+                                        <strong>
+                                            @user.FullName
+                                        </strong>
+                                    </td>
+
+
+                                    <!-- Email -->
+                                    <td>
+                                        @user.Email
+                                    </td>
+
+
+                                    <!-- Role -->
+                                    <td>
+
+                                        @if (!string.IsNullOrEmpty(user.RoleName))
+                                        {
+                                            <span class="badge bg-secondary">
+                                                @user.RoleName
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">
+                                                No Role
+                                            </span>
+                                        }
+
+                                    </td>
+
+
+                                    <!-- Status -->
+                                    <td>
+
+                                        @if (user.IsActive)
+                                        {
+                                            <span class="badge bg-success">
+                                                Active
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">
+                                                Inactive
+                                            </span>
+                                        }
+
+                                    </td>
+
+
+                                    <!-- Created Date -->
+                                    <td>
+                                        @user.CreatedAt.ToString("dd/MM/yyyy")
+                                    </td>
+
+
+                                    <!-- Actions -->
+                                    <td class="text-end">
+
+                                        <a asp-action="Edit"
+                                           asp-route-id="@user.Id"
+                                           class="btn btn-sm btn-outline-primary">
+                                            Edit
+                                        </a>
+
+                                        <a asp-action="Delete"
+                                           asp-route-id="@user.Id"
+                                           class="btn btn-sm btn-outline-danger">
+                                            Delete
+                                        </a>
+
+                                    </td>
+
+                                </tr>
+                            }
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-5">
+
+                    <h5>
+                        No users yet
+                    </h5>
+
+                    <p class="text-muted">
+                        Add the first user to start managing system access.
+                    </p>
+
+                    <a asp-controller="Users"
+                       asp-action="Create"
+                       class="btn btn-success">
+                        + Add User
+                    </a>
+
+                </div>
+            }
+
+        </div>
+
+    </div>
+
+</div>

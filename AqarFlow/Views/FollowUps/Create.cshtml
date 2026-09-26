@@ -1,0 +1,244 @@
+﻿@model AqarFlow.Models.FollowUp
+
+@{
+    ViewData["Title"] = "Add Follow-up";
+}
+
+<div class="container-fluid">
+
+    <!-- Page Header -->
+    <div class="mb-4">
+
+        <a asp-action="Index"
+           class="text-decoration-none">
+
+            <i class="bi bi-arrow-left"></i>
+            Back to Follow-ups
+
+        </a>
+
+        <h2 class="mt-3 mb-1">
+            Add Follow-up
+        </h2>
+
+        <p class="text-muted">
+            Record a new customer follow-up
+        </p>
+
+    </div>
+
+
+    <!-- Form Card -->
+    <div class="card border-0 shadow-sm">
+
+        <div class="card-body p-4">
+
+            <form asp-action="Create"
+                  method="post">
+
+                @Html.AntiForgeryToken()
+
+
+                <!-- Validation -->
+                <div asp-validation-summary="ModelOnly"
+                     class="text-danger mb-3">
+                </div>
+
+
+                <div class="row g-3">
+
+
+                    <!-- Customer -->
+                    <div class="col-md-6">
+
+                        <label asp-for="CustomerId"
+                               class="form-label">
+                            Customer
+                        </label>
+
+                        <select asp-for="CustomerId"
+                                asp-items="ViewBag.Customers"
+                                class="form-select">
+
+                            <option value="">
+                                Select Customer
+                            </option>
+
+                        </select>
+
+                        <span asp-validation-for="CustomerId"
+                              class="text-danger">
+                        </span>
+
+                    </div>
+
+
+                    <!-- Contact Date -->
+                    <div class="col-md-6">
+
+                        <label asp-for="ContactDate"
+                               class="form-label">
+                            Contact Date
+                        </label>
+
+                        <input asp-for="ContactDate"
+                               type="datetime-local"
+                               class="form-control" />
+
+                        <span asp-validation-for="ContactDate"
+                              class="text-danger">
+                        </span>
+
+                    </div>
+
+
+                    <!-- Contact Method -->
+                    <div class="col-md-6">
+
+                        <label asp-for="ContactMethod"
+                               class="form-label">
+                            Contact Method
+                        </label>
+
+                        <select asp-for="ContactMethod"
+                                class="form-select">
+
+                            <option value="">
+                                Select Contact Method
+                            </option>
+
+                            <option value="Phone">
+                                Phone
+                            </option>
+
+                            <option value="WhatsApp">
+                                WhatsApp
+                            </option>
+
+                            <option value="Email">
+                                Email
+                            </option>
+
+                            <option value="Meeting">
+                                Meeting
+                            </option>
+
+                        </select>
+
+                    </div>
+
+
+                    <!-- Result -->
+                    <div class="col-md-6">
+
+                        <label asp-for="Result"
+                               class="form-label">
+                            Result
+                        </label>
+
+                        <input asp-for="Result"
+                               class="form-control"
+                               placeholder="Enter follow-up result" />
+
+                    </div>
+
+
+                    <!-- Next Follow-up Date -->
+                    <div class="col-md-6">
+
+                        <label asp-for="NextFollowUpDate"
+                               class="form-label">
+                            Next Follow-up Date
+                        </label>
+
+                        <input asp-for="NextFollowUpDate"
+                               type="datetime-local"
+                               class="form-control" />
+
+                    </div>
+
+
+                    <!-- Status -->
+                    <div class="col-md-6">
+
+                        <label asp-for="Status"
+                               class="form-label">
+                            Status
+                        </label>
+
+                        <select asp-for="Status"
+                                class="form-select">
+
+                            <option value="Pending">
+                                Pending
+                            </option>
+
+                            <option value="Completed">
+                                Completed
+                            </option>
+
+                            <option value="Cancelled">
+                                Cancelled
+                            </option>
+
+                        </select>
+
+                    </div>
+
+
+                    <!-- Notes -->
+                    <div class="col-12">
+
+                        <label asp-for="Notes"
+                               class="form-label">
+                            Notes
+                        </label>
+
+                        <textarea asp-for="Notes"
+                                  class="form-control"
+                                  rows="4"
+                                  placeholder="Add any notes about this follow-up...">
+                        </textarea>
+
+                    </div>
+
+
+                </div>
+
+
+                <!-- Buttons -->
+                <div class="d-flex justify-content-end gap-2 mt-4">
+
+                    <a asp-action="Index"
+                       class="btn btn-outline-secondary">
+
+                        Cancel
+
+                    </a>
+
+                    <button type="submit"
+                            class="btn btn-success">
+
+                        <i class="bi bi-check-lg"></i>
+                        Save Follow-up
+
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+@section Scripts {
+
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+}

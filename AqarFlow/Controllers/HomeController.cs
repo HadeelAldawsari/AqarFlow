@@ -1,92 +1,98 @@
-using AqarFlow.Data;
 using AqarFlow.Models;
+using AqarFlow.Repositories;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using System.Diagnostics;
 
 namespace AqarFlow.Controllers
 {
+    // Only logged-in users can access this controller
+    [Authorize]
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
-        private readonly AppDbContext _db;
+        private readonly ICustomerRepository _customerRepository;
+        private readonly IPropertyRepository _propertyRepository;
+        private readonly IDealRepository _dealRepository;
+        private readonly IFollowUpRepository _followUpRepository;
+
 
         public HomeController(
             ILogger<HomeController> logger,
-            AppDbContext db)
+            ICustomerRepository customerRepository,
+            IPropertyRepository propertyRepository,
+            IDealRepository dealRepository,
+            IFollowUpRepository followUpRepository)
         {
             _logger = logger;
-            _db = db;
+            _customerRepository = customerRepository;
+            _propertyRepository = propertyRepository;
+            _dealRepository = dealRepository;
+            _followUpRepository = followUpRepository;
         }
 
+
+        // =========================
+        // DASHBOARD
+        // =========================
         public IActionResult Index()
         {
             // Total customers
-            ViewBag.TotalCustomers = _db.Customers.Count();
+            ViewBag.TotalCustomers =
+                _customerRepository.Count();
+
 
             // Total properties
-            ViewBag.TotalProperties = _db.Properties.Count();
+            ViewBag.TotalProperties =
+                _propertyRepository.Count();
+
 
             // Active deals
-            ViewBag.ActiveDeals = _db.Deals
-                .Count(d => d.Status != "Completed"
-                         && d.Status != "Cancelled");
+            ViewBag.ActiveDeals =
+                _dealRepository.CountActive();
 
-            // Today's date range
-            DateTime today = DateTime.Today;
-            DateTime tomorrow = today.AddDays(1);
 
             // Follow-ups scheduled for today
-            ViewBag.FollowUpsToday = _db.FollowUps
-                .Count(f =>
-                    f.NextFollowUpDate >= today &&
-                    f.NextFollowUpDate < tomorrow);
+            ViewBag.FollowUpsToday =
+                _followUpRepository.CountForDate(
+                    DateTime.Today
+                );
+
 
             // Latest 5 customers
-            ViewBag.RecentCustomers = _db.Customers
-                .OrderByDescending(c => c.CreatedAt)
-                .Take(5)
-                .ToList();
+            ViewBag.RecentCustomers =
+                _customerRepository.GetRecent(5);
+
 
             // Customers by status
-            ViewBag.NewCustomers = _db.Customers
-                .Count(c => c.Status == "New");
+            ViewBag.NewCustomers =
+                _customerRepository
+                    .CountByStatus("New");
 
-            ViewBag.InterestedCustomers = _db.Customers
-                .Count(c => c.Status == "Interested");
+            ViewBag.InterestedCustomers =
+                _customerRepository
+                    .CountByStatus("Interested");
 
-            ViewBag.InProgressCustomers = _db.Customers
-                .Count(c => c.Status == "In Progress");
+            ViewBag.InProgressCustomers =
+                _customerRepository
+                    .CountByStatus("In Progress");
 
-            ViewBag.ClosedCustomers = _db.Customers
-                .Count(c => c.Status == "Closed");
+            ViewBag.ClosedCustomers =
+                _customerRepository
+                    .CountByStatus("Closed");
+
 
             // Upcoming follow-ups
-            ViewBag.UpcomingFollowUps = _db.FollowUps
-                .Include(f => f.Customer)
-                .Where(f =>
-                    f.NextFollowUpDate.HasValue &&
-                    f.NextFollowUpDate.Value >= DateTime.Now &&
-                    f.Status != "Completed")
-                .OrderBy(f => f.NextFollowUpDate)
-                .Take(5)
-                .ToList();
+            ViewBag.UpcomingFollowUps =
+                _followUpRepository.GetUpcoming(5);
+
 
             // =========================
-            // Leads Over Time Chart
+            // LEADS OVER TIME CHART
             // =========================
 
             int currentYear = DateTime.Now.Year;
 
-            var monthlyCustomers = _db.Customers
-                .Where(c => c.CreatedAt.Year == currentYear)
-                .GroupBy(c => c.CreatedAt.Month)
-                .Select(g => new
-                {
-                    Month = g.Key,
-                    Count = g.Count()
-                })
-                .ToList();
 
             // Month names
             ViewBag.MonthLabels = new[]
@@ -105,24 +111,32 @@ namespace AqarFlow.Controllers
                 "Dec"
             };
 
+
             // Customer count for each month
-            ViewBag.MonthValues = Enumerable
-                .Range(1, 12)
-                .Select(month =>
-                    monthlyCustomers
-                        .FirstOrDefault(x => x.Month == month)?.Count ?? 0)
-                .ToArray();
+            ViewBag.MonthValues =
+                _customerRepository
+                    .GetMonthlyCounts(currentYear);
+
 
             ViewBag.ChartYear = currentYear;
+
 
             return View();
         }
 
+
+        // =========================
+        // PRIVACY
+        // =========================
         public IActionResult Privacy()
         {
             return View();
         }
 
+
+        // =========================
+        // ERROR
+        // =========================
         [ResponseCache(
             Duration = 0,
             Location = ResponseCacheLocation.None,
@@ -131,10 +145,10 @@ namespace AqarFlow.Controllers
         {
             return View(new ErrorViewModel
             {
-                RequestId = Activity.Current?.Id
+                RequestId =
+                    Activity.Current?.Id
                     ?? HttpContext.TraceIdentifier
             });
         }
     }
 }
-

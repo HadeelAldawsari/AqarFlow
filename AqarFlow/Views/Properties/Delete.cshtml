@@ -1,0 +1,77 @@
+﻿@model AqarFlow.Models.Property
+
+@{
+    ViewData["Title"] = "Delete Property";
+}
+
+<div class="container-fluid">
+
+    <div class="mb-4">
+        <h2 class="fw-bold mb-1">Delete Property</h2>
+        <p class="text-muted mb-0">
+            Confirm property deletion
+        </p>
+    </div>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-body p-4">
+
+            <div class="alert alert-warning">
+                Are you sure you want to delete this property?
+                This action cannot be undone.
+            </div>
+
+            <div class="row">
+
+                <div class="col-md-6 mb-3">
+                    <small class="text-muted">Property Title</small>
+                    <h5 class="mt-1">@Model.Title</h5>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <small class="text-muted">Property Type</small>
+                    <h5 class="mt-1">@Model.PropertyType</h5>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <small class="text-muted">Location</small>
+                    <h5 class="mt-1">
+                        @Model.City
+                        @if (!string.IsNullOrEmpty(Model.Area))
+                        {
+                            <span> - @Model.Area</span>
+                        }
+                    </h5>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <small class="text-muted">Price</small>
+                    <h5 class="mt-1">
+                        @Model.Price.ToString("N0") SAR
+                    </h5>
+                </div>
+
+            </div>
+
+            <hr />
+
+            <form asp-action="Delete" method="post">
+
+                <input type="hidden" asp-for="Id" />
+
+                <button type="submit"
+                        class="btn btn-danger">
+                    Delete Property
+                </button>
+
+                <a asp-action="Index"
+                   class="btn btn-outline-secondary ms-2">
+                    Cancel
+                </a>
+
+            </form>
+
+        </div>
+    </div>
+
+</div>

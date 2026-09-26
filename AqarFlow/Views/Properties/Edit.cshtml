@@ -1,0 +1,361 @@
+﻿@model AqarFlow.ViewModels.PropertyEditViewModel
+
+@{
+    ViewData["Title"] = "Edit Property";
+}
+
+<div class="container-fluid">
+
+    <div class="mb-4">
+        <h2 class="fw-bold mb-1">Edit Property</h2>
+
+        <p class="text-muted mb-0">
+            Update property information
+        </p>
+    </div>
+
+    <div class="card shadow-sm border-0">
+
+        <div class="card-body p-4">
+
+            <form asp-action="Edit"
+                  asp-route-id="@Model.Id"
+                  method="post"
+                  enctype="multipart/form-data">
+
+                @Html.AntiForgeryToken()
+
+                <input type="hidden"
+                       asp-for="Id" />
+
+                <input type="hidden"
+                       asp-for="CurrentImagePath" />
+
+                <div asp-validation-summary="ModelOnly"
+                     class="text-danger mb-3">
+                </div>
+
+
+                <!-- ========================= -->
+                <!-- CURRENT IMAGE -->
+                <!-- ========================= -->
+
+                <div class="mb-4">
+
+                    <label class="form-label">
+                        Current Property Image
+                    </label>
+
+                    @if (!string.IsNullOrEmpty(Model.CurrentImagePath))
+                    {
+                        <div class="mt-2">
+
+                            <img src="@Model.CurrentImagePath"
+                                 alt="Current Property Image"
+                                 style="
+                            width: 220px;
+                            height: 150px;
+                            object-fit: cover;
+                            border-radius: 10px;
+                            " />
+
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="mt-2
+                            d-flex
+                            align-items-center
+                            justify-content-center
+                            bg-light"
+                             style="
+                            width: 220px;
+                            height: 150px;
+                            border-radius: 10px;
+                            ">
+
+                            <div class="text-center text-muted">
+
+                                <i class="bi bi-house-door fs-1"></i>
+
+                                <p class="mb-0 mt-1">
+                                    No image
+                                </p>
+
+                            </div>
+
+                        </div>
+                    }
+
+                </div>
+
+
+                <div class="row">
+
+                    <!-- Property Title -->
+                    <div class="col-md-6 mb-3">
+
+                        <label asp-for="Title"
+                               class="form-label">
+                            Property Title
+                        </label>
+
+                        <input asp-for="Title"
+                               class="form-control" />
+
+                        <span asp-validation-for="Title"
+                              class="text-danger">
+                        </span>
+
+                    </div>
+
+
+                    <!-- Property Type -->
+                    <div class="col-md-6 mb-3">
+
+                        <label asp-for="PropertyType"
+                               class="form-label">
+                            Property Type
+                        </label>
+
+                        <select asp-for="PropertyType"
+                                class="form-select">
+
+                            <option value="">
+                                Select property type
+                            </option>
+
+                            <option value="Villa">
+                                Villa
+                            </option>
+
+                            <option value="Apartment">
+                                Apartment
+                            </option>
+
+                            <option value="Land">
+                                Land
+                            </option>
+
+                            <option value="Building">
+                                Building
+                            </option>
+
+                            <option value="Office">
+                                Office
+                            </option>
+
+                            <option value="Shop">
+                                Shop
+                            </option>
+
+                        </select>
+
+                        <span asp-validation-for="PropertyType"
+                              class="text-danger">
+                        </span>
+
+                    </div>
+
+
+                    <!-- City -->
+                    <div class="col-md-6 mb-3">
+
+                        <label asp-for="City"
+                               class="form-label">
+                            City
+                        </label>
+
+                        <input asp-for="City"
+                               class="form-control" />
+
+                        <span asp-validation-for="City"
+                              class="text-danger">
+                        </span>
+
+                    </div>
+
+
+                    <!-- Area -->
+                    <div class="col-md-6 mb-3">
+
+                        <label asp-for="Area"
+                               class="form-label">
+                            Area
+                        </label>
+
+                        <input asp-for="Area"
+                               class="form-control" />
+
+                    </div>
+
+
+                    <!-- Price -->
+                    <div class="col-md-6 mb-3">
+
+                        <label asp-for="Price"
+                               class="form-label">
+                            Price (SAR)
+                        </label>
+
+                        <input asp-for="Price"
+                               type="number"
+                               step="0.01"
+                               class="form-control" />
+
+                        <span asp-validation-for="Price"
+                              class="text-danger">
+                        </span>
+
+                    </div>
+
+
+                    <!-- Property Size -->
+                    <div class="col-md-6 mb-3">
+
+                        <label asp-for="PropertySize"
+                               class="form-label">
+                            Property Size (m²)
+                        </label>
+
+                        <input asp-for="PropertySize"
+                               type="number"
+                               step="0.01"
+                               class="form-control" />
+
+                    </div>
+
+
+                    <!-- Bedrooms -->
+                    <div class="col-md-6 mb-3">
+
+                        <label asp-for="Bedrooms"
+                               class="form-label">
+                            Bedrooms
+                        </label>
+
+                        <input asp-for="Bedrooms"
+                               type="number"
+                               class="form-control" />
+
+                    </div>
+
+
+                    <!-- Bathrooms -->
+                    <div class="col-md-6 mb-3">
+
+                        <label asp-for="Bathrooms"
+                               class="form-label">
+                            Bathrooms
+                        </label>
+
+                        <input asp-for="Bathrooms"
+                               type="number"
+                               class="form-control" />
+
+                    </div>
+
+
+                    <!-- Status -->
+                    <div class="col-md-6 mb-3">
+
+                        <label asp-for="Status"
+                               class="form-label">
+                            Status
+                        </label>
+
+                        <select asp-for="Status"
+                                class="form-select">
+
+                            <option value="Available">
+                                Available
+                            </option>
+
+                            <option value="Reserved">
+                                Reserved
+                            </option>
+
+                            <option value="Sold">
+                                Sold
+                            </option>
+
+                        </select>
+
+                    </div>
+
+
+                    <!-- New Property Image -->
+                    <div class="col-md-6 mb-3">
+
+                        <label asp-for="ImageFile"
+                               class="form-label">
+                            Change Property Image
+                        </label>
+
+                        <input asp-for="ImageFile"
+                               type="file"
+                               class="form-control"
+                               accept="image/*" />
+
+                        <div class="form-text">
+                            Leave empty to keep the current image.
+                        </div>
+
+                        <span asp-validation-for="ImageFile"
+                              class="text-danger">
+                        </span>
+
+                    </div>
+
+
+                    <!-- Description -->
+                    <div class="col-12 mb-3">
+
+                        <label asp-for="Description"
+                               class="form-label">
+                            Description
+                        </label>
+
+                        <textarea asp-for="Description"
+                                  class="form-control"
+                                  rows="4"></textarea>
+
+                    </div>
+
+                </div>
+
+
+                <!-- Buttons -->
+                <div class="d-flex gap-2 mt-2">
+
+                    <button type="submit"
+                            class="btn btn-success">
+
+                        <i class="bi bi-check-lg"></i>
+                        Save Changes
+
+                    </button>
+
+                    <a asp-action="Index"
+                       class="btn btn-outline-secondary">
+
+                        Cancel
+
+                    </a>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

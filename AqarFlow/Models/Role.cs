@@ -13,6 +13,13 @@
 
         // Navigation Property
         // One role can have many permissions
-        public ICollection<PermissionRole>? PermissionRoles { get; set; }
+        public ICollection<PermissionRole> PermissionRoles { get; set; }
+            = new List<PermissionRole>();
+
+        // Navigation Property
+        // One role can be assigned to many users
+        public ICollection<RoleUser> RoleUsers { get; set; }
+            = new List<RoleUser>();
     }
 }
+

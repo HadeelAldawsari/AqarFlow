@@ -1,0 +1,298 @@
+﻿@model AqarFlow.ViewModels.LoginViewModel
+
+@{
+    ViewData["Title"] = "Login";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>Login - AqarFlow</title>
+
+    <link rel="stylesheet"
+          href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+
+    <style>
+
+            body {
+                margin: 0;
+                min-height: 100vh;
+                background: #f6f5f1;
+                font-family: Arial, sans-serif;
+            }
+
+            .login-page {
+                min-height: 100vh;
+                display: flex;
+            }
+
+            /* Left Side */
+            .login-brand {
+                width: 45%;
+                background: #173f35;
+                color: white;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                padding: 60px;
+            }
+
+            .brand-content {
+                max-width: 430px;
+            }
+
+            .brand-icon {
+                width: 70px;
+                height: 70px;
+                border-radius: 18px;
+                background: #d6b36a;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 32px;
+                color: #173f35;
+                margin-bottom: 25px;
+            }
+
+            .brand-content h1 {
+                font-size: 42px;
+                font-weight: 700;
+                margin-bottom: 10px;
+            }
+
+            .brand-content h4 {
+                color: #d6b36a;
+                margin-bottom: 25px;
+            }
+
+            .brand-content p {
+                color: #d8e0dd;
+                line-height: 1.8;
+            }
+
+            /* Right Side */
+            .login-section {
+                width: 55%;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                padding: 40px;
+            }
+
+            .login-card {
+                width: 100%;
+                max-width: 440px;
+                background: white;
+                padding: 40px;
+                border-radius: 18px;
+                box-shadow: 0 12px 35px rgba(0, 0, 0, 0.08);
+            }
+
+                .login-card h2 {
+                    color: #173f35;
+                    font-weight: 700;
+                    margin-bottom: 8px;
+                }
+
+            .login-subtitle {
+                color: #777;
+                margin-bottom: 30px;
+            }
+
+            .form-label {
+                font-weight: 600;
+                color: #333;
+            }
+
+            .form-control {
+                min-height: 48px;
+                border-radius: 10px;
+            }
+
+                .form-control:focus {
+                    box-shadow: none;
+                    border-color: #173f35;
+                }
+
+            .login-button {
+                width: 100%;
+                min-height: 48px;
+                border: none;
+                border-radius: 10px;
+                background: #173f35;
+                color: white;
+                font-weight: 600;
+            }
+
+                .login-button:hover {
+                    background: #0f3028;
+                }
+
+            .login-footer {
+                text-align: center;
+                color: #999;
+                font-size: 13px;
+                margin-top: 25px;
+            }
+
+            @@media (max-width: 850px) {
+
+                .login-brand {
+                    display: none;
+                }
+
+                .login-section {
+                    width: 100%;
+                }
+            }
+
+    </style>
+</head>
+
+<body>
+
+    <div class="login-page">
+
+        <!-- AqarFlow Brand -->
+        <div class="login-brand">
+
+            <div class="brand-content">
+
+                <div class="brand-icon">
+                    <i class="bi bi-buildings"></i>
+                </div>
+
+                <h1>AqarFlow</h1>
+
+                <h4>Real Estate CRM</h4>
+
+                <p>
+                    Manage customers, properties, follow-ups
+                    and opportunities in one place.
+                </p>
+
+                <p>
+                    Great Opportunities.<br />
+                    <strong>Better Decisions.</strong>
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <!-- Login Form -->
+        <div class="login-section">
+
+            <div class="login-card">
+
+                <h2>Welcome Back</h2>
+
+                <p class="login-subtitle">
+                    Sign in to your AqarFlow account
+                </p>
+
+
+                <form asp-controller="Accounts"
+                      asp-action="Login"
+                      method="post">
+
+                    <div asp-validation-summary="ModelOnly"
+                         class="alert alert-danger">
+                    </div>
+
+
+                    <!-- Email -->
+                    <div class="mb-3">
+
+                        <label asp-for="Email"
+                               class="form-label">
+                            Email
+                        </label>
+
+                        <input asp-for="Email"
+                               type="email"
+                               class="form-control"
+                               placeholder="Enter your email" />
+
+                        <span asp-validation-for="Email"
+                              class="text-danger">
+                        </span>
+
+                    </div>
+
+
+                    <!-- Password -->
+                    <div class="mb-3">
+
+                        <label asp-for="Password"
+                               class="form-label">
+                            Password
+                        </label>
+
+                        <input asp-for="Password"
+                               type="password"
+                               class="form-control"
+                               placeholder="Enter your password" />
+
+                        <span asp-validation-for="Password"
+                              class="text-danger">
+                        </span>
+
+                    </div>
+
+
+                    <!-- Remember Me -->
+                    <div class="form-check mb-4">
+
+                        <input asp-for="RememberMe"
+                               class="form-check-input" />
+
+                        <label asp-for="RememberMe"
+                               class="form-check-label">
+                            Remember me
+                        </label>
+
+                    </div>
+
+
+                    <!-- Login Button -->
+                    <button type="submit"
+                            class="login-button">
+
+                        <i class="bi bi-box-arrow-in-right me-2"></i>
+                        Sign In
+
+                    </button>
+
+                </form>
+
+
+                <div class="login-footer">
+                    AqarFlow - Real Estate CRM
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+
+    <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+
+    <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
+
+</body>
+
+</html>
