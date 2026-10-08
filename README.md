@@ -47,17 +47,7 @@ The API provides CRUD endpoints for:
 - Deals
 - CustomerPropertyInterests
 
-API documentation is available through Swagger when running the API project locally.
-
-## How to Run
-
-1. Clone the repository.
-2. Open `AqarFlow.slnx` in Visual Studio.
-3. Restore NuGet packages.
-4. Configure the SQL Server connection string in the application settings.
-5. Prepare the `AqarFlowDB` database using the project's EF Core configuration and migrations.
-6. Run the `AqarFlow` project to access the MVC website.
-7. Run `AqarFlow.API` separately to access the REST API and Swagger.
+API documentation is available through Swagger.
 
 ## Project Purpose
 
