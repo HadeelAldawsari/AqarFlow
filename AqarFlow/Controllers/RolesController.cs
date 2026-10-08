@@ -1,13 +1,11 @@
-﻿using AqarFlow.Models;
+﻿
+using AqarFlow.Models;
 using AqarFlow.Repositories;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AqarFlow.Controllers
 {
-    // Roles Controller:
-    // Handles role management and assigning permissions to roles.
-
     [Authorize(Roles = "Admin")]
     public class RolesController : Controller
     {
@@ -25,11 +23,11 @@ namespace AqarFlow.Controllers
             _permissionRoleRepository = permissionRoleRepository;
         }
 
-
-        // =========================
+        // =====================================
         // INDEX
-        // Display all roles
-        // =========================
+        // =====================================
+
+        [HttpGet]
         public IActionResult Index()
         {
             var roles = _roleRepository.GetAll();
@@ -37,12 +35,12 @@ namespace AqarFlow.Controllers
             return View(roles);
         }
 
+        // =====================================
+        // CREATE - POST
+        // =====================================
 
-        // =========================
-        // CREATE
-        // Add a new role
-        // =========================
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public IActionResult Create(Role role)
         {
             if (ModelState.IsValid)
@@ -54,63 +52,65 @@ namespace AqarFlow.Controllers
             return RedirectToAction(nameof(Index));
         }
 
+        // =====================================
+        // EDIT - POST
+        // =====================================
 
-        // =========================
-        // EDIT
-        // Update an existing role
-        // =========================
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public IActionResult Edit(Role role)
         {
             if (ModelState.IsValid)
             {
-                _roleRepository.Update(role);
+                var existingRole = _roleRepository.GetById(role.Id);
+
+                if (existingRole == null)
+                    return NotFound();
+
+                existingRole.Name = role.Name;
+
+                _roleRepository.Update(existingRole);
                 _roleRepository.Save();
             }
 
             return RedirectToAction(nameof(Index));
         }
 
+        // =====================================
+        // DELETE - POST
+        // =====================================
 
-        // =========================
-        // DELETE
-        // Delete a role
-        // =========================
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public IActionResult Delete(int id)
         {
             var role = _roleRepository.GetById(id);
 
-            if (role != null)
-            {
-                _roleRepository.Delete(role);
-                _roleRepository.Save();
-            }
+            if (role == null)
+                return NotFound();
+
+            _roleRepository.Delete(role);
+            _roleRepository.Save();
 
             return RedirectToAction(nameof(Index));
         }
 
-
-        // =========================
+        // =====================================
         // ASSIGN PERMISSIONS - GET
-        // Display permissions for selected role
-        // =========================
+        // =====================================
+
         [HttpGet]
         public IActionResult AssignPermissions(int roleId)
         {
             var role = _roleRepository.GetById(roleId);
 
             if (role == null)
-            {
                 return NotFound();
-            }
 
-            var allPermissions =
-                _permissionRepository.GetAll();
+            var allPermissions = _permissionRepository.GetAll();
 
-            var assignedPermissionIds =
-                _permissionRoleRepository
-                    .GetPermissionIdsByRoleId(roleId);
+            var assignedPermissionIds = _permissionRoleRepository
+                .GetPermissionIdsByRoleId(roleId);
 
             ViewBag.Role = role;
             ViewBag.AllPermissions = allPermissions;
@@ -119,12 +119,12 @@ namespace AqarFlow.Controllers
             return View();
         }
 
-
-        // =========================
+        // =====================================
         // ASSIGN PERMISSIONS - POST
-        // Save selected permissions
-        // =========================
+        // =====================================
+
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public IActionResult AssignPermissions(
             int roleId,
             List<int> permissionIds)
@@ -132,27 +132,19 @@ namespace AqarFlow.Controllers
             var role = _roleRepository.GetById(roleId);
 
             if (role == null)
-            {
                 return NotFound();
-            }
 
-            // Remove old permissions
-            _permissionRoleRepository
-                .DeleteByRoleId(roleId);
+            _permissionRoleRepository.DeleteByRoleId(roleId);
 
-            // Add selected permissions
-            foreach (var permissionId in permissionIds)
+            foreach (var permissionId in permissionIds ?? new List<int>())
             {
-                var permissionRole =
-                    new PermissionRole
-                    {
-                        RoleId = roleId,
-                        PermissionId = permissionId
-                    };
+                var permissionRole = new PermissionRole
+                {
+                    RoleId = roleId,
+                    PermissionId = permissionId
+                };
 
-                _permissionRoleRepository.Add(
-                    permissionRole
-                );
+                _permissionRoleRepository.Add(permissionRole);
             }
 
             _permissionRoleRepository.Save();

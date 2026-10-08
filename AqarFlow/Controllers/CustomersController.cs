@@ -1,171 +1,206 @@
-﻿using AqarFlow.Models;
-using AqarFlow.Repositories;
+﻿
+using AqarFlow.Application.Services.Base;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
+using WebCustomer = AqarFlow.Models.Customer;
+using DomainCustomer = AqarFlow.Domain.Models.Customer;
+using WebCustomerDto = AqarFlow.DTOs.CustomerDto;
+
 namespace AqarFlow.Controllers
 {
-    // Customers Controller:
-    // Handles customer-related pages and operations.
-
-    // Only logged-in users can access Customers
     [Authorize]
     public class CustomersController : Controller
     {
-        private readonly ICustomerRepository _customerRepository;
+        private readonly ICustomerService _customerService;
 
-        // Receives the customer repository
-        public CustomersController(ICustomerRepository customerRepository)
+        public CustomersController(ICustomerService customerService)
         {
-            _customerRepository = customerRepository;
+            _customerService = customerService;
         }
 
-
-        // =========================
+        // =====================================
         // INDEX
-        // Displays all customers
-        // =========================
+        // =====================================
+
         public IActionResult Index()
         {
-            var customers = _customerRepository.GetAll();
+            var customers = _customerService.GetAll()
+                .Select(c => new WebCustomerDto
+                {
+                    Id = c.Id,
+                    Name = c.Name,
+                    Phone = c.Phone,
+                    Purpose = c.Purpose,
+                    PropertyType = c.PropertyType,
+                    PreferredArea = c.PreferredArea,
+                    Status = c.Status,
+                    CreatedAt = c.CreatedAt
+                })
+                .ToList();
 
             return View(customers);
         }
 
-
-        // =========================
+        // =====================================
         // CREATE - GET
-        // Displays the form to create a new customer
-        // =========================
+        // =====================================
+
         [HttpGet]
         public IActionResult Create()
         {
             return View();
         }
 
-
-        // =========================
+        // =====================================
         // CREATE - POST
-        // Saves the new customer to the database
-        // =========================
+        // =====================================
+
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Create(Customer customer)
-        {
-            if (ModelState.IsValid)
-            {
-                customer.Status = "New";
-                customer.CreatedAt = DateTime.Now;
-
-                _customerRepository.Add(customer);
-                _customerRepository.Save();
-
-                return RedirectToAction(nameof(Index));
-            }
-
-            return View(customer);
-        }
-
-
-        // =========================
-        // EDIT - GET
-        // Displays the selected customer in the edit form
-        // =========================
-        [HttpGet]
-        public IActionResult Edit(int id)
-        {
-            var customer = _customerRepository.GetById(id);
-
-            if (customer == null)
-            {
-                return NotFound();
-            }
-
-            return View(customer);
-        }
-
-
-        // =========================
-        // EDIT - POST
-        // Saves the updated customer data
-        // =========================
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public IActionResult Edit(Customer customer)
+        public IActionResult Create(WebCustomer customer)
         {
             if (!ModelState.IsValid)
             {
                 return View(customer);
             }
 
-            var existingCustomer =
-                _customerRepository.GetById(customer.Id);
+            var domainCustomer = ToDomainCustomer(customer);
 
-            if (existingCustomer == null)
-            {
-                return NotFound();
-            }
-
-            // Update customer information
-            existingCustomer.Name = customer.Name;
-            existingCustomer.Phone = customer.Phone;
-            existingCustomer.Email = customer.Email;
-            existingCustomer.Purpose = customer.Purpose;
-            existingCustomer.PropertyType = customer.PropertyType;
-            existingCustomer.PreferredCity = customer.PreferredCity;
-            existingCustomer.PreferredArea = customer.PreferredArea;
-            existingCustomer.MinBudget = customer.MinBudget;
-            existingCustomer.MaxBudget = customer.MaxBudget;
-            existingCustomer.Bedrooms = customer.Bedrooms;
-            existingCustomer.Status = customer.Status;
-            existingCustomer.Source = customer.Source;
-            existingCustomer.Notes = customer.Notes;
-            existingCustomer.UpdatedAt = DateTime.Now;
-
-            _customerRepository.Update(existingCustomer);
-            _customerRepository.Save();
+            _customerService.CreateCustomer(domainCustomer);
 
             return RedirectToAction(nameof(Index));
         }
 
+        // =====================================
+        // EDIT - GET
+        // =====================================
 
-        // =========================
-        // DELETE - GET
-        // Displays the customer before deletion
-        // =========================
         [HttpGet]
-        public IActionResult Delete(int id)
+        public IActionResult Edit(int id)
         {
-            var customer = _customerRepository.GetById(id);
+            var customer = _customerService.GetCustomerById(id);
 
             if (customer == null)
             {
                 return NotFound();
             }
 
-            return View(customer);
+            return View(ToWebCustomer(customer));
         }
 
+        // =====================================
+        // EDIT - POST
+        // =====================================
 
-        // =========================
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult Edit(WebCustomer customer)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(customer);
+            }
+
+            var updated = _customerService.UpdateCustomer(
+                ToDomainCustomer(customer)
+            );
+
+            if (!updated)
+            {
+                return NotFound();
+            }
+
+            return RedirectToAction(nameof(Index));
+        }
+
+        // =====================================
+        // DELETE - GET
+        // =====================================
+
+        [HttpGet]
+        public IActionResult Delete(int id)
+        {
+            var customer = _customerService.GetCustomerById(id);
+
+            if (customer == null)
+            {
+                return NotFound();
+            }
+
+            return View(ToWebCustomer(customer));
+        }
+
+        // =====================================
         // DELETE - POST
-        // Deletes the customer from the database
-        // =========================
+        // =====================================
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult DeleteConfirmed(int id)
         {
-            var customer = _customerRepository.GetById(id);
+            var deleted = _customerService.DeleteCustomer(id);
 
-            if (customer == null)
+            if (!deleted)
             {
                 return NotFound();
             }
 
-            _customerRepository.Delete(customer);
-            _customerRepository.Save();
-
             return RedirectToAction(nameof(Index));
+        }
+
+        // =====================================
+        // DOMAIN TO MVC MODEL
+        // =====================================
+
+        private static WebCustomer ToWebCustomer(DomainCustomer customer)
+        {
+            return new WebCustomer
+            {
+                Id = customer.Id,
+                Name = customer.Name,
+                Phone = customer.Phone,
+                Email = customer.Email,
+                Purpose = customer.Purpose,
+                PropertyType = customer.PropertyType,
+                PreferredCity = customer.PreferredCity,
+                PreferredArea = customer.PreferredArea,
+                MinBudget = customer.MinBudget,
+                MaxBudget = customer.MaxBudget,
+                Bedrooms = customer.Bedrooms,
+                Status = customer.Status,
+                Source = customer.Source,
+                Notes = customer.Notes,
+                CreatedAt = customer.CreatedAt,
+                UpdatedAt = customer.UpdatedAt
+            };
+        }
+
+        // =====================================
+        // MVC MODEL TO DOMAIN
+        // =====================================
+
+        private static DomainCustomer ToDomainCustomer(WebCustomer customer)
+        {
+            return new DomainCustomer
+            {
+                Id = customer.Id,
+                Name = customer.Name,
+                Phone = customer.Phone,
+                Email = customer.Email,
+                Purpose = customer.Purpose,
+                PropertyType = customer.PropertyType,
+                PreferredCity = customer.PreferredCity,
+                PreferredArea = customer.PreferredArea,
+                MinBudget = customer.MinBudget,
+                MaxBudget = customer.MaxBudget,
+                Bedrooms = customer.Bedrooms,
+                Status = customer.Status,
+                Source = customer.Source,
+                Notes = customer.Notes,
+                CreatedAt = customer.CreatedAt,
+                UpdatedAt = customer.UpdatedAt
+            };
         }
     }
 }

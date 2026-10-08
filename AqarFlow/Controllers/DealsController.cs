@@ -1,46 +1,77 @@
-﻿using AqarFlow.Models;
-using AqarFlow.Repositories;
+﻿
+using AqarFlow.Application.Services.Base;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 
+using DealModel = AqarFlow.Models.Deal;
+using DomainDeal = AqarFlow.Domain.Models.Deal;
+using DealDto = AqarFlow.DTOs.DealDto;
+
 namespace AqarFlow.Controllers
 {
-    // Only logged-in users can access Deals
     [Authorize]
     public class DealsController : Controller
     {
-        private readonly IDealRepository _dealRepository;
-        private readonly ICustomerRepository _customerRepository;
-        private readonly IPropertyRepository _propertyRepository;
+        private readonly IDealService _dealService;
+        private readonly ICustomerService _customerService;
+        private readonly IPropertyService _propertyService;
 
         public DealsController(
-            IDealRepository dealRepository,
-            ICustomerRepository customerRepository,
-            IPropertyRepository propertyRepository)
+            IDealService dealService,
+            ICustomerService customerService,
+            IPropertyService propertyService)
         {
-            _dealRepository = dealRepository;
-            _customerRepository = customerRepository;
-            _propertyRepository = propertyRepository;
+            _dealService = dealService;
+            _customerService = customerService;
+            _propertyService = propertyService;
         }
 
-
-        // =========================
+        // =====================================
         // INDEX
-        // Get only the data needed for the deals list
-        // =========================
+        // =====================================
+
         public IActionResult Index()
         {
-            var deals = _dealRepository.GetAll();
+            var customers = _customerService
+                .GetAllCustomers()
+                .ToDictionary(c => c.Id, c => c.Name);
+
+            var properties = _propertyService
+                .GetAll()
+                .ToDictionary(p => p.Id, p => p.Title);
+
+            var deals = _dealService
+                .GetAll()
+                .Select(d => new DealDto
+                {
+                    Id = d.Id,
+
+                    CustomerName = customers.TryGetValue(
+                        d.CustomerId, out var customerName)
+                        ? customerName
+                        : "-",
+
+                    PropertyTitle = properties.TryGetValue(
+                        d.PropertyId, out var propertyTitle)
+                        ? propertyTitle
+                        : "-",
+
+                    DealType = d.DealType,
+                    DealValue = d.DealValue,
+                    Commission = d.Commission,
+                    DealDate = d.DealDate,
+                    Status = d.Status
+                })
+                .ToList();
 
             return View(deals);
         }
 
-
-        // =========================
+        // =====================================
         // CREATE - GET
-        // Display create deal form
-        // =========================
+        // =====================================
+
         [HttpGet]
         public IActionResult Create()
         {
@@ -50,21 +81,21 @@ namespace AqarFlow.Controllers
             return View();
         }
 
-
-        // =========================
+        // =====================================
         // CREATE - POST
-        // Save new deal
-        // =========================
+        // =====================================
+
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Create(Deal deal)
+        public IActionResult Create(DealModel deal)
         {
             if (ModelState.IsValid)
             {
-                deal.CreatedAt = DateTime.Now;
+                var domainDeal = ToDomainModel(deal);
 
-                _dealRepository.Add(deal);
-                _dealRepository.Save();
+                domainDeal.CreatedAt = DateTime.Now;
+
+                _dealService.Add(domainDeal);
 
                 return RedirectToAction(nameof(Index));
             }
@@ -75,55 +106,44 @@ namespace AqarFlow.Controllers
             return View(deal);
         }
 
-
-        // =========================
+        // =====================================
         // EDIT - GET
-        // Display edit deal form
-        // =========================
+        // =====================================
+
         [HttpGet]
         public IActionResult Edit(int? id)
         {
             if (id == null)
-            {
                 return NotFound();
-            }
 
-            var deal = _dealRepository.GetById(id.Value);
+            var deal = _dealService.GetById(id.Value);
 
             if (deal == null)
-            {
                 return NotFound();
-            }
 
             LoadCustomers(deal.CustomerId);
             LoadProperties(deal.PropertyId);
 
-            return View(deal);
+            return View(ToViewModel(deal));
         }
 
-
-        // =========================
+        // =====================================
         // EDIT - POST
-        // Update existing deal
-        // =========================
+        // =====================================
+
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Edit(int id, Deal deal)
+        public IActionResult Edit(int id, DealModel deal)
         {
             if (id != deal.Id)
-            {
                 return NotFound();
-            }
 
             if (ModelState.IsValid)
             {
-                var existingDeal =
-                    _dealRepository.GetById(id);
+                var existingDeal = _dealService.GetById(id);
 
                 if (existingDeal == null)
-                {
                     return NotFound();
-                }
 
                 existingDeal.CustomerId = deal.CustomerId;
                 existingDeal.PropertyId = deal.PropertyId;
@@ -134,8 +154,7 @@ namespace AqarFlow.Controllers
                 existingDeal.DealDate = deal.DealDate;
                 existingDeal.Notes = deal.Notes;
 
-                _dealRepository.Update(existingDeal);
-                _dealRepository.Save();
+                _dealService.Update(existingDeal);
 
                 return RedirectToAction(nameof(Index));
             }
@@ -146,59 +165,50 @@ namespace AqarFlow.Controllers
             return View(deal);
         }
 
-
-        // =========================
+        // =====================================
         // DELETE - GET
-        // Display delete confirmation
-        // =========================
+        // =====================================
+
         [HttpGet]
         public IActionResult Delete(int? id)
         {
             if (id == null)
-            {
                 return NotFound();
-            }
 
-            var deal = _dealRepository.GetById(id.Value);
+            var deal = _dealService.GetById(id.Value);
 
             if (deal == null)
-            {
                 return NotFound();
-            }
 
-            return View(deal);
+            return View(ToViewModel(deal));
         }
 
-
-        // =========================
+        // =====================================
         // DELETE - POST
-        // Delete deal
-        // =========================
+        // =====================================
+
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public IActionResult DeleteConfirmed(int id)
         {
-            var deal = _dealRepository.GetById(id);
+            var deal = _dealService.GetById(id);
 
             if (deal != null)
             {
-                _dealRepository.Delete(deal);
-                _dealRepository.Save();
+                _dealService.Delete(deal);
             }
 
             return RedirectToAction(nameof(Index));
         }
 
-
-        // =========================
+        // =====================================
         // LOAD CUSTOMERS
-        // Prepare customer dropdown
-        // =========================
-        private void LoadCustomers(
-            int? selectedCustomerId = null)
+        // =====================================
+
+        private void LoadCustomers(int? selectedCustomerId = null)
         {
-            var customers = _customerRepository
-                .GetAll()
+            var customers = _customerService
+                .GetAllCustomers()
                 .OrderBy(c => c.Name)
                 .ToList();
 
@@ -210,15 +220,13 @@ namespace AqarFlow.Controllers
             );
         }
 
-
-        // =========================
+        // =====================================
         // LOAD PROPERTIES
-        // Prepare property dropdown
-        // =========================
-        private void LoadProperties(
-            int? selectedPropertyId = null)
+        // =====================================
+
+        private void LoadProperties(int? selectedPropertyId = null)
         {
-            var properties = _propertyRepository
+            var properties = _propertyService
                 .GetAll()
                 .OrderBy(p => p.Title)
                 .ToList();
@@ -229,6 +237,48 @@ namespace AqarFlow.Controllers
                 "Title",
                 selectedPropertyId
             );
+        }
+
+        // =====================================
+        // MVC MODEL TO DOMAIN MODEL
+        // =====================================
+
+        private static DomainDeal ToDomainModel(DealModel deal)
+        {
+            return new DomainDeal
+            {
+                Id = deal.Id,
+                CustomerId = deal.CustomerId,
+                PropertyId = deal.PropertyId,
+                DealType = deal.DealType,
+                DealValue = deal.DealValue,
+                Commission = deal.Commission,
+                Status = deal.Status,
+                DealDate = deal.DealDate,
+                Notes = deal.Notes,
+                CreatedAt = deal.CreatedAt
+            };
+        }
+
+        // =====================================
+        // DOMAIN MODEL TO MVC MODEL
+        // =====================================
+
+        private static DealModel ToViewModel(DomainDeal deal)
+        {
+            return new DealModel
+            {
+                Id = deal.Id,
+                CustomerId = deal.CustomerId,
+                PropertyId = deal.PropertyId,
+                DealType = deal.DealType,
+                DealValue = deal.DealValue,
+                Commission = deal.Commission,
+                Status = deal.Status,
+                DealDate = deal.DealDate,
+                Notes = deal.Notes,
+                CreatedAt = deal.CreatedAt
+            };
         }
     }
 }

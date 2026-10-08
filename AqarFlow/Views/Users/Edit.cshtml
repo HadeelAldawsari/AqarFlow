@@ -1,4 +1,5 @@
-﻿@model AqarFlow.Models.User
+﻿
+@model AqarFlow.ViewModels.UserEditViewModel
 
 @{
     ViewData["Title"] = "Edit User";
@@ -16,21 +17,22 @@
     <div class="card shadow-sm border-0">
         <div class="card-body p-4">
 
-            <form asp-action="Edit" method="post">
+            <form asp-controller="Users"
+                  asp-action="Edit"
+                  asp-route-id="@Model.Id"
+                  method="post">
+
+                @Html.AntiForgeryToken()
 
                 <input type="hidden" asp-for="Id" />
 
-                <!-- Keep the current password hash -->
-                <input type="hidden" asp-for="PasswordHash" />
-
-                <div asp-validation-summary="ModelOnly"
+                <div asp-validation-summary="All"
                      class="text-danger mb-3"></div>
 
                 <div class="row">
 
-                    <!-- Full Name -->
+                    <!-- FULL NAME -->
                     <div class="col-md-6 mb-3">
-
                         <label asp-for="FullName"
                                class="form-label">
                             Full Name
@@ -41,13 +43,10 @@
 
                         <span asp-validation-for="FullName"
                               class="text-danger"></span>
-
                     </div>
 
-
-                    <!-- Email -->
+                    <!-- EMAIL -->
                     <div class="col-md-6 mb-3">
-
                         <label asp-for="Email"
                                class="form-label">
                             Email
@@ -59,18 +58,16 @@
 
                         <span asp-validation-for="Email"
                               class="text-danger"></span>
-
                     </div>
 
-
-                    <!-- Role -->
+                    <!-- ROLE -->
                     <div class="col-md-6 mb-3">
-
-                        <label class="form-label">
+                        <label asp-for="RoleId"
+                               class="form-label">
                             Role
                         </label>
 
-                        <select name="roleId"
+                        <select asp-for="RoleId"
                                 class="form-select">
 
                             <option value="">
@@ -79,29 +76,19 @@
 
                             @foreach (var role in ViewBag.Roles)
                             {
-                                if (ViewBag.SelectedRoleId != null &&
-                                    role.Id == (int)ViewBag.SelectedRoleId)
-                                {
-                                    <option value="@role.Id" selected>
-                                        @role.Name
-                                    </option>
-                                }
-                                else
-                                {
-                                    <option value="@role.Id">
-                                        @role.Name
-                                    </option>
-                                }
+                                <option value="@role.Id">
+                                    @role.Name
+                                </option>
                             }
 
                         </select>
 
+                        <span asp-validation-for="RoleId"
+                              class="text-danger"></span>
                     </div>
 
-
-                    <!-- Account Status -->
+                    <!-- ACCOUNT STATUS -->
                     <div class="col-md-6 mb-3">
-
                         <label class="form-label d-block">
                             Account Status
                         </label>
@@ -118,11 +105,9 @@
                             </label>
 
                         </div>
-
                     </div>
 
                 </div>
-
 
                 <div class="d-flex gap-2 mt-3">
 

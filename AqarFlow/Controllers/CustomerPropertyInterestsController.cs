@@ -1,46 +1,75 @@
-﻿using AqarFlow.Models;
-using AqarFlow.Repositories;
+﻿
+using AqarFlow.Application.Services.Base;
+using AqarFlow.DTOs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 
+using InterestModel = AqarFlow.Models.CustomerPropertyInterest;
+using DomainInterest = AqarFlow.Domain.Models.CustomerPropertyInterest;
+
 namespace AqarFlow.Controllers
 {
-    // Only logged-in users can access property matching
     [Authorize]
     public class CustomerPropertyInterestsController : Controller
     {
-        private readonly ICustomerPropertyInterestRepository _interestRepository;
-        private readonly ICustomerRepository _customerRepository;
-        private readonly IPropertyRepository _propertyRepository;
+        private readonly ICustomerPropertyInterestService _interestService;
+        private readonly ICustomerService _customerService;
+        private readonly IPropertyService _propertyService;
 
         public CustomerPropertyInterestsController(
-            ICustomerPropertyInterestRepository interestRepository,
-            ICustomerRepository customerRepository,
-            IPropertyRepository propertyRepository)
+            ICustomerPropertyInterestService interestService,
+            ICustomerService customerService,
+            IPropertyService propertyService)
         {
-            _interestRepository = interestRepository;
-            _customerRepository = customerRepository;
-            _propertyRepository = propertyRepository;
+            _interestService = interestService;
+            _customerService = customerService;
+            _propertyService = propertyService;
         }
 
-
-        // =========================
+        // =====================================
         // INDEX
-        // Get only the data needed for the matching list
-        // =========================
+        // =====================================
+
         public IActionResult Index()
         {
-            var interests = _interestRepository.GetAll();
+            var customers = _customerService
+                .GetAllCustomers()
+                .ToDictionary(c => c.Id, c => c.Name);
+
+            var properties = _propertyService
+                .GetAll()
+                .ToDictionary(p => p.Id, p => p.Title);
+
+            var interests = _interestService
+                .GetAll()
+                .Select(i => new CustomerPropertyInterestDto
+                {
+                    Id = i.Id,
+
+                    CustomerName = customers.TryGetValue(
+                        i.CustomerId, out var customerName)
+                        ? customerName
+                        : "-",
+
+                    PropertyTitle = properties.TryGetValue(
+                        i.PropertyId, out var propertyTitle)
+                        ? propertyTitle
+                        : "-",
+
+                    Status = i.Status,
+                    Notes = i.Notes,
+                    CreatedAt = i.CreatedAt
+                })
+                .ToList();
 
             return View(interests);
         }
 
-
-        // =========================
+        // =====================================
         // CREATE - GET
-        // Display create matching form
-        // =========================
+        // =====================================
+
         [HttpGet]
         public IActionResult Create()
         {
@@ -50,21 +79,21 @@ namespace AqarFlow.Controllers
             return View();
         }
 
-
-        // =========================
+        // =====================================
         // CREATE - POST
-        // Save new customer-property match
-        // =========================
+        // =====================================
+
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Create(CustomerPropertyInterest interest)
+        public IActionResult Create(InterestModel interest)
         {
             if (ModelState.IsValid)
             {
-                interest.CreatedAt = DateTime.Now;
+                var domainInterest = ToDomainModel(interest);
 
-                _interestRepository.Add(interest);
-                _interestRepository.Save();
+                domainInterest.CreatedAt = DateTime.Now;
+
+                _interestService.Add(domainInterest);
 
                 return RedirectToAction(nameof(Index));
             }
@@ -75,73 +104,51 @@ namespace AqarFlow.Controllers
             return View(interest);
         }
 
-
-        // =========================
+        // =====================================
         // EDIT - GET
-        // Display edit matching form
-        // =========================
+        // =====================================
+
         [HttpGet]
         public IActionResult Edit(int? id)
         {
             if (id == null)
-            {
                 return NotFound();
-            }
 
-            var interest =
-                _interestRepository.GetById(id.Value);
+            var interest = _interestService.GetById(id.Value);
 
             if (interest == null)
-            {
                 return NotFound();
-            }
 
             LoadCustomers(interest.CustomerId);
             LoadProperties(interest.PropertyId);
 
-            return View(interest);
+            return View(ToViewModel(interest));
         }
 
-
-        // =========================
+        // =====================================
         // EDIT - POST
-        // Update customer-property match
-        // =========================
+        // =====================================
+
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Edit(
-            int id,
-            CustomerPropertyInterest interest)
+        public IActionResult Edit(int id, InterestModel interest)
         {
             if (id != interest.Id)
-            {
                 return NotFound();
-            }
 
             if (ModelState.IsValid)
             {
-                var existingInterest =
-                    _interestRepository.GetById(id);
+                var existingInterest = _interestService.GetById(id);
 
                 if (existingInterest == null)
-                {
                     return NotFound();
-                }
 
-                existingInterest.CustomerId =
-                    interest.CustomerId;
+                existingInterest.CustomerId = interest.CustomerId;
+                existingInterest.PropertyId = interest.PropertyId;
+                existingInterest.Status = interest.Status;
+                existingInterest.Notes = interest.Notes;
 
-                existingInterest.PropertyId =
-                    interest.PropertyId;
-
-                existingInterest.Status =
-                    interest.Status;
-
-                existingInterest.Notes =
-                    interest.Notes;
-
-                _interestRepository.Update(existingInterest);
-                _interestRepository.Save();
+                _interestService.Update(existingInterest);
 
                 return RedirectToAction(nameof(Index));
             }
@@ -152,61 +159,50 @@ namespace AqarFlow.Controllers
             return View(interest);
         }
 
-
-        // =========================
+        // =====================================
         // DELETE - GET
-        // Display delete confirmation
-        // =========================
+        // =====================================
+
         [HttpGet]
         public IActionResult Delete(int? id)
         {
             if (id == null)
-            {
                 return NotFound();
-            }
 
-            var interest =
-                _interestRepository.GetById(id.Value);
+            var interest = _interestService.GetById(id.Value);
 
             if (interest == null)
-            {
                 return NotFound();
-            }
 
-            return View(interest);
+            return View(ToViewModel(interest));
         }
 
-
-        // =========================
+        // =====================================
         // DELETE - POST
-        // Delete customer-property match
-        // =========================
+        // =====================================
+
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public IActionResult DeleteConfirmed(int id)
         {
-            var interest =
-                _interestRepository.GetById(id);
+            var interest = _interestService.GetById(id);
 
             if (interest != null)
             {
-                _interestRepository.Delete(interest);
-                _interestRepository.Save();
+                _interestService.Delete(interest);
             }
 
             return RedirectToAction(nameof(Index));
         }
 
-
-        // =========================
+        // =====================================
         // LOAD CUSTOMERS
-        // Prepare customer dropdown
-        // =========================
-        private void LoadCustomers(
-            int? selectedCustomerId = null)
+        // =====================================
+
+        private void LoadCustomers(int? selectedCustomerId = null)
         {
-            var customers = _customerRepository
-                .GetAll()
+            var customers = _customerService
+                .GetAllCustomers()
                 .OrderBy(c => c.Name)
                 .ToList();
 
@@ -218,15 +214,13 @@ namespace AqarFlow.Controllers
             );
         }
 
-
-        // =========================
+        // =====================================
         // LOAD PROPERTIES
-        // Prepare property dropdown
-        // =========================
-        private void LoadProperties(
-            int? selectedPropertyId = null)
+        // =====================================
+
+        private void LoadProperties(int? selectedPropertyId = null)
         {
-            var properties = _propertyRepository
+            var properties = _propertyService
                 .GetAll()
                 .OrderBy(p => p.Title)
                 .ToList();
@@ -237,6 +231,40 @@ namespace AqarFlow.Controllers
                 "Title",
                 selectedPropertyId
             );
+        }
+
+        // =====================================
+        // MVC MODEL TO DOMAIN MODEL
+        // =====================================
+
+        private static DomainInterest ToDomainModel(InterestModel interest)
+        {
+            return new DomainInterest
+            {
+                Id = interest.Id,
+                CustomerId = interest.CustomerId,
+                PropertyId = interest.PropertyId,
+                Status = interest.Status,
+                Notes = interest.Notes,
+                CreatedAt = interest.CreatedAt
+            };
+        }
+
+        // =====================================
+        // DOMAIN MODEL TO MVC MODEL
+        // =====================================
+
+        private static InterestModel ToViewModel(DomainInterest interest)
+        {
+            return new InterestModel
+            {
+                Id = interest.Id,
+                CustomerId = interest.CustomerId,
+                PropertyId = interest.PropertyId,
+                Status = interest.Status,
+                Notes = interest.Notes,
+                CreatedAt = interest.CreatedAt
+            };
         }
     }
 }

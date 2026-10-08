@@ -1,43 +1,63 @@
-﻿using AqarFlow.Models;
-using AqarFlow.Repositories;
+﻿
+using AqarFlow.Application.Services.Base;
+using AqarFlow.DTOs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 
+using WebFollowUp = AqarFlow.Models.FollowUp;
+using WebCustomer = AqarFlow.Models.Customer;
+using DomainFollowUp = AqarFlow.Domain.Models.FollowUp;
+
 namespace AqarFlow.Controllers
 {
-    // Only logged-in users can access Follow-ups
     [Authorize]
     public class FollowUpsController : Controller
     {
-        private readonly IFollowUpRepository _followUpRepository;
-        private readonly ICustomerRepository _customerRepository;
+        private readonly IFollowUpService _followUpService;
+        private readonly ICustomerService _customerService;
 
         public FollowUpsController(
-            IFollowUpRepository followUpRepository,
-            ICustomerRepository customerRepository)
+            IFollowUpService followUpService,
+            ICustomerService customerService)
         {
-            _followUpRepository = followUpRepository;
-            _customerRepository = customerRepository;
+            _followUpService = followUpService;
+            _customerService = customerService;
         }
 
-
-        // =========================
+        // =====================================
         // INDEX
-        // Get only the data needed for the follow-ups list
-        // =========================
+        // =====================================
         public IActionResult Index()
         {
-            var followUps = _followUpRepository.GetAll();
+            var customers = _customerService.GetAll()
+                .ToDictionary(c => c.Id, c => c.Name);
+
+            var followUps = _followUpService.GetAll()
+                .Select(f => new FollowUpDto
+                {
+                    Id = f.Id,
+
+                    CustomerName = customers.TryGetValue(
+                        f.CustomerId,
+                        out var customerName)
+                        ? customerName
+                        : "Unknown",
+
+                    ContactDate = f.ContactDate,
+                    ContactMethod = f.ContactMethod,
+                    Result = f.Result,
+                    NextFollowUpDate = f.NextFollowUpDate,
+                    Status = f.Status
+                })
+                .ToList();
 
             return View(followUps);
         }
 
-
-        // =========================
+        // =====================================
         // CREATE - GET
-        // Display create follow-up form
-        // =========================
+        // =====================================
         [HttpGet]
         public IActionResult Create()
         {
@@ -46,35 +66,32 @@ namespace AqarFlow.Controllers
             return View();
         }
 
-
-        // =========================
+        // =====================================
         // CREATE - POST
-        // Save new follow-up
-        // =========================
+        // =====================================
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Create(FollowUp followUp)
+        public IActionResult Create(WebFollowUp followUp)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
-                followUp.CreatedAt = DateTime.Now;
+                LoadCustomers(followUp.CustomerId);
 
-                _followUpRepository.Add(followUp);
-                _followUpRepository.Save();
-
-                return RedirectToAction(nameof(Index));
+                return View(followUp);
             }
 
-            LoadCustomers(followUp.CustomerId);
+            var domainFollowUp = ToDomainFollowUp(followUp);
 
-            return View(followUp);
+            domainFollowUp.CreatedAt = DateTime.Now;
+
+            _followUpService.Add(domainFollowUp);
+
+            return RedirectToAction(nameof(Index));
         }
 
-
-        // =========================
+        // =====================================
         // EDIT - GET
-        // Display edit follow-up form
-        // =========================
+        // =====================================
         [HttpGet]
         public IActionResult Edit(int? id)
         {
@@ -83,8 +100,7 @@ namespace AqarFlow.Controllers
                 return NotFound();
             }
 
-            var followUp =
-                _followUpRepository.GetById(id.Value);
+            var followUp = _followUpService.GetById(id.Value);
 
             if (followUp == null)
             {
@@ -93,70 +109,51 @@ namespace AqarFlow.Controllers
 
             LoadCustomers(followUp.CustomerId);
 
-            return View(followUp);
+            return View(ToWebFollowUp(followUp));
         }
 
-
-        // =========================
+        // =====================================
         // EDIT - POST
-        // Update follow-up
-        // =========================
+        // =====================================
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Edit(int id, FollowUp followUp)
+        public IActionResult Edit(int id, WebFollowUp followUp)
         {
             if (id != followUp.Id)
             {
                 return NotFound();
             }
 
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
-                var existingFollowUp =
-                    _followUpRepository.GetById(id);
+                LoadCustomers(followUp.CustomerId);
 
-                if (existingFollowUp == null)
-                {
-                    return NotFound();
-                }
-
-                existingFollowUp.CustomerId =
-                    followUp.CustomerId;
-
-                existingFollowUp.ContactDate =
-                    followUp.ContactDate;
-
-                existingFollowUp.ContactMethod =
-                    followUp.ContactMethod;
-
-                existingFollowUp.Result =
-                    followUp.Result;
-
-                existingFollowUp.NextFollowUpDate =
-                    followUp.NextFollowUpDate;
-
-                existingFollowUp.Status =
-                    followUp.Status;
-
-                existingFollowUp.Notes =
-                    followUp.Notes;
-
-                _followUpRepository.Update(existingFollowUp);
-                _followUpRepository.Save();
-
-                return RedirectToAction(nameof(Index));
+                return View(followUp);
             }
 
-            LoadCustomers(followUp.CustomerId);
+            var existingFollowUp = _followUpService.GetById(id);
 
-            return View(followUp);
+            if (existingFollowUp == null)
+            {
+                return NotFound();
+            }
+
+            existingFollowUp.CustomerId = followUp.CustomerId;
+            existingFollowUp.ContactDate = followUp.ContactDate;
+            existingFollowUp.ContactMethod = followUp.ContactMethod;
+            existingFollowUp.Result = followUp.Result;
+            existingFollowUp.NextFollowUpDate = followUp.NextFollowUpDate;
+            existingFollowUp.Status = followUp.Status;
+            existingFollowUp.Notes = followUp.Notes;
+
+            _followUpService.Update(existingFollowUp);
+
+            return RedirectToAction(nameof(Index));
         }
 
-
-        // =========================
+        // =====================================
         // DELETE - GET
-        // Display delete confirmation
-        // =========================
+        // =====================================
         [HttpGet]
         public IActionResult Delete(int? id)
         {
@@ -165,48 +162,39 @@ namespace AqarFlow.Controllers
                 return NotFound();
             }
 
-            var followUp =
-                _followUpRepository.GetById(id.Value);
+            var followUp = _followUpService.GetById(id.Value);
 
             if (followUp == null)
             {
                 return NotFound();
             }
 
-            return View(followUp);
+            return View(ToWebFollowUp(followUp));
         }
 
-
-        // =========================
+        // =====================================
         // DELETE - POST
-        // Delete follow-up
-        // =========================
+        // =====================================
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public IActionResult DeleteConfirmed(int id)
         {
-            var followUp =
-                _followUpRepository.GetById(id);
+            var followUp = _followUpService.GetById(id);
 
             if (followUp != null)
             {
-                _followUpRepository.Delete(followUp);
-                _followUpRepository.Save();
+                _followUpService.Delete(followUp);
             }
 
             return RedirectToAction(nameof(Index));
         }
 
-
-        // =========================
+        // =====================================
         // LOAD CUSTOMERS
-        // Prepare customer dropdown list
-        // =========================
-        private void LoadCustomers(
-            int? selectedCustomerId = null)
+        // =====================================
+        private void LoadCustomers(int? selectedCustomerId = null)
         {
-            var customers = _customerRepository
-                .GetAll()
+            var customers = _customerService.GetAll()
                 .OrderBy(c => c.Name)
                 .ToList();
 
@@ -216,6 +204,58 @@ namespace AqarFlow.Controllers
                 "Name",
                 selectedCustomerId
             );
+        }
+
+        // =====================================
+        // DOMAIN TO MVC MODEL
+        // =====================================
+        private WebFollowUp ToWebFollowUp(
+            DomainFollowUp followUp)
+        {
+            var customer = _customerService.GetCustomerById(
+                followUp.CustomerId
+            );
+
+            return new WebFollowUp
+            {
+                Id = followUp.Id,
+                CustomerId = followUp.CustomerId,
+                ContactDate = followUp.ContactDate,
+                ContactMethod = followUp.ContactMethod,
+                Result = followUp.Result,
+                NextFollowUpDate = followUp.NextFollowUpDate,
+                Status = followUp.Status,
+                Notes = followUp.Notes,
+                CreatedAt = followUp.CreatedAt,
+
+                Customer = customer == null
+                    ? null
+                    : new WebCustomer
+                    {
+                        Id = customer.Id,
+                        Name = customer.Name
+                    }
+            };
+        }
+
+        // =====================================
+        // MVC MODEL TO DOMAIN
+        // =====================================
+        private static DomainFollowUp ToDomainFollowUp(
+            WebFollowUp followUp)
+        {
+            return new DomainFollowUp
+            {
+                Id = followUp.Id,
+                CustomerId = followUp.CustomerId,
+                ContactDate = followUp.ContactDate,
+                ContactMethod = followUp.ContactMethod,
+                Result = followUp.Result,
+                NextFollowUpDate = followUp.NextFollowUpDate,
+                Status = followUp.Status,
+                Notes = followUp.Notes,
+                CreatedAt = followUp.CreatedAt
+            };
         }
     }
 }

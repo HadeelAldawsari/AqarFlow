@@ -2,5 +2,9 @@
   <Folder Name="/Solution Items/">
     <File Path=".gitignore" />
   </Folder>
+  <Project Path="AqarFlow.API/AqarFlow.API.csproj" Id="4da1d9ae-d0b9-44d5-bf25-ec50a27c253b" />
+  <Project Path="AqarFlow.Application/AqarFlow.Application.csproj" Id="dc5caceb-5f32-49be-a0c9-c5c2b337523b" />
+  <Project Path="AqarFlow.Domain/AqarFlow.Domain.csproj" Id="13924030-5663-48c5-a0a7-20944061437b" />
+  <Project Path="AqarFlow.Infrastructure/AqarFlow.Infrastructure.csproj" Id="62e4f1f8-5941-4d2c-ad81-8e041f19008d" />
   <Project Path="AqarFlow/AqarFlow.csproj" />
 </Solution>
