@@ -3,9 +3,9 @@ using AqarFlow.Application.Services.Base;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-using WebCustomer = AqarFlow.Models.Customer;
+using WebCustomer = AqarFlow.Domain.Models.Customer;
 using DomainCustomer = AqarFlow.Domain.Models.Customer;
-using WebCustomerDto = AqarFlow.DTOs.CustomerDto;
+using WebCustomerDto = AqarFlow.Application.DTOs.CustomerDto;
 
 namespace AqarFlow.Controllers
 {

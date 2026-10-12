@@ -16,10 +16,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Repositories\Base\" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\AqarFlow.Application\AqarFlow.Application.csproj" />
     <ProjectReference Include="..\AqarFlow.Infrastructure\AqarFlow.Infrastructure.csproj" />
   </ItemGroup>

@@ -1,8 +1,9 @@
 ﻿
-using AqarFlow.Models;
-using AqarFlow.Repositories;
+using AqarFlow.Domain.Models;
+using AqarFlow.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Permission = AqarFlow.Domain.Models.Permission;
 
 namespace AqarFlow.Controllers
 {

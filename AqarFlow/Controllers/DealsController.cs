@@ -4,9 +4,9 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 
-using DealModel = AqarFlow.Models.Deal;
+using DealModel = AqarFlow.Domain.Models.Deal;
 using DomainDeal = AqarFlow.Domain.Models.Deal;
-using DealDto = AqarFlow.DTOs.DealDto;
+using DealDto = AqarFlow.Application.DTOs.DealDto;
 
 namespace AqarFlow.Controllers
 {

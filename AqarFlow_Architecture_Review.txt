@@ -1,0 +1,4302 @@
+===== C:\Projects\AqarFlow\AqarFlow\Repositories\CustomerPropertyInterestRepository.cs =====
+using AqarFlow.Data;
+using AqarFlow.DTOs;
+using AqarFlow.Models;
+using Microsoft.EntityFrameworkCore;
+
+namespace AqarFlow.Repositories
+{
+    public class CustomerPropertyInterestRepository
+        : ICustomerPropertyInterestRepository
+    {
+        private readonly AppDbContext _db;
+        private readonly DbSet<CustomerPropertyInterest> _dbSet;
+
+        public CustomerPropertyInterestRepository(AppDbContext db)
+        {
+            _db = db;
+            _dbSet = _db.Set<CustomerPropertyInterest>();
+        }
+
+        // Get only the data needed for the interests list
+        public List<CustomerPropertyInterestDto> GetAll()
+        {
+            return _dbSet
+                .OrderByDescending(i => i.CreatedAt)
+                .Select(i => new CustomerPropertyInterestDto
+                {
+                    Id = i.Id,
+
+                    CustomerName = i.Customer != null
+                        ? i.Customer.Name
+                        : "Unknown",
+
+                    PropertyTitle = i.Property != null
+                        ? i.Property.Title
+                        : "Unknown",
+
+                    Status = i.Status,
+                    Notes = i.Notes,
+                    CreatedAt = i.CreatedAt
+                })
+                .ToList();
+        }
+
+        // Get interest with related customer and property
+        public CustomerPropertyInterest? GetById(int id)
+        {
+            return _dbSet
+                .Include(i => i.Customer)
+                .Include(i => i.Property)
+                .FirstOrDefault(i => i.Id == id);
+        }
+
+        // Add new interest
+        public void Add(CustomerPropertyInterest interest)
+        {
+            _dbSet.Add(interest);
+        }
+
+        // Update existing interest
+        public void Update(CustomerPropertyInterest interest)
+        {
+            _dbSet.Update(interest);
+        }
+
+        // Delete interest
+        public void Delete(CustomerPropertyInterest interest)
+        {
+            _dbSet.Remove(interest);
+        }
+
+        // Save changes
+        public void Save()
+        {
+            _db.SaveChanges();
+        }
+    }
+}
+===== C:\Projects\AqarFlow\AqarFlow\Repositories\CustomerRepository.cs =====
+using AqarFlow.Data;
+using AqarFlow.DTOs;
+using AqarFlow.Models;
+using Microsoft.EntityFrameworkCore;
+
+namespace AqarFlow.Repositories
+{
+    public class CustomerRepository : ICustomerRepository
+    {
+        private readonly AppDbContext _db;
+        private readonly DbSet<Customer> _dbSet;
+
+        public CustomerRepository(AppDbContext db)
+        {
+            _db = db;
+            _dbSet = _db.Set<Customer>();
+        }
+
+
+        // =========================
+        // GET ALL
+        // =========================
+        public List<CustomerDto> GetAll()
+        {
+            return _dbSet
+                .OrderByDescending(c => c.CreatedAt)
+                .Select(c => new CustomerDto
+                {
+                    Id = c.Id,
+                    Name = c.Name,
+                    Phone = c.Phone,
+                    Purpose = c.Purpose,
+                    PropertyType = c.PropertyType,
+                    PreferredArea = c.PreferredArea,
+                    Status = c.Status,
+                    CreatedAt = c.CreatedAt
+                })
+                .ToList();
+        }
+
+
+        // =========================
+        // GET BY ID
+        // =========================
+        public Customer? GetById(int id)
+        {
+            return _dbSet.Find(id);
+        }
+
+
+        // =========================
+        // ADD
+        // =========================
+        public void Add(Customer customer)
+        {
+            _dbSet.Add(customer);
+        }
+
+
+        // =========================
+        // UPDATE
+        // =========================
+        public void Update(Customer customer)
+        {
+            _dbSet.Update(customer);
+        }
+
+
+        // =========================
+        // DELETE
+        // =========================
+        public void Delete(Customer customer)
+        {
+            _dbSet.Remove(customer);
+        }
+
+
+        // =========================
+        // SAVE
+        // =========================
+        public void Save()
+        {
+            _db.SaveChanges();
+        }
+
+
+        // =========================
+        // DASHBOARD - TOTAL
+        // =========================
+        public int Count()
+        {
+            return _dbSet.Count();
+        }
+
+
+        // =========================
+        // DASHBOARD - STATUS COUNT
+        // =========================
+        public int CountByStatus(string status)
+        {
+            return _dbSet.Count(c =>
+                c.Status == status);
+        }
+
+
+        // =========================
+        // DASHBOARD - RECENT
+        // =========================
+        public List<Customer> GetRecent(int count)
+        {
+            return _dbSet
+                .OrderByDescending(c => c.CreatedAt)
+                .Take(count)
+                .ToList();
+        }
+
+
+        // =========================
+        // DASHBOARD - MONTHLY COUNTS
+        // =========================
+        public int[] GetMonthlyCounts(int year)
+        {
+            var monthlyCustomers = _dbSet
+                .Where(c => c.CreatedAt.Year == year)
+                .GroupBy(c => c.CreatedAt.Month)
+                .Select(g => new
+                {
+                    Month = g.Key,
+                    Count = g.Count()
+                })
+                .ToList();
+
+            return Enumerable
+                .Range(1, 12)
+                .Select(month =>
+                    monthlyCustomers
+                        .FirstOrDefault(
+                            x => x.Month == month
+                        )?.Count ?? 0)
+                .ToArray();
+        }
+    }
+}
+===== C:\Projects\AqarFlow\AqarFlow\Repositories\DealRepository.cs =====
+using AqarFlow.Data;
+using AqarFlow.DTOs;
+using AqarFlow.Models;
+using Microsoft.EntityFrameworkCore;
+
+namespace AqarFlow.Repositories
+{
+    public class DealRepository : IDealRepository
+    {
+        private readonly AppDbContext _db;
+        private readonly DbSet<Deal> _dbSet;
+
+        public DealRepository(AppDbContext db)
+        {
+            _db = db;
+            _dbSet = _db.Set<Deal>();
+        }
+
+
+        // =========================
+        // GET ALL
+        // =========================
+        public List<DealDto> GetAll()
+        {
+            return _dbSet
+                .OrderByDescending(d => d.CreatedAt)
+                .Select(d => new DealDto
+                {
+                    Id = d.Id,
+
+                    CustomerName = d.Customer != null
+                        ? d.Customer.Name
+                        : "Unknown",
+
+                    PropertyTitle = d.Property != null
+                        ? d.Property.Title
+                        : "Unknown",
+
+                    DealType = d.DealType,
+                    DealValue = d.DealValue,
+                    Commission = d.Commission,
+                    DealDate = d.DealDate,
+                    Status = d.Status
+                })
+                .ToList();
+        }
+
+
+        // =========================
+        // GET BY ID
+        // =========================
+        public Deal? GetById(int id)
+        {
+            return _dbSet
+                .Include(d => d.Customer)
+                .Include(d => d.Property)
+                .FirstOrDefault(d => d.Id == id);
+        }
+
+
+        // =========================
+        // ADD
+        // =========================
+        public void Add(Deal deal)
+        {
+            _dbSet.Add(deal);
+        }
+
+
+        // =========================
+        // UPDATE
+        // =========================
+        public void Update(Deal deal)
+        {
+            _dbSet.Update(deal);
+        }
+
+
+        // =========================
+        // DELETE
+        // =========================
+        public void Delete(Deal deal)
+        {
+            _dbSet.Remove(deal);
+        }
+
+
+        // =========================
+        // SAVE
+        // =========================
+        public void Save()
+        {
+            _db.SaveChanges();
+        }
+
+
+        // =========================
+        // DASHBOARD - ACTIVE DEALS
+        // =========================
+        public int CountActive()
+        {
+            return _dbSet.Count(d =>
+                d.Status != "Completed" &&
+                d.Status != "Cancelled");
+        }
+    }
+}
+===== C:\Projects\AqarFlow\AqarFlow\Repositories\FollowUpRepository.cs =====
+using AqarFlow.Data;
+using AqarFlow.DTOs;
+using AqarFlow.Models;
+using Microsoft.EntityFrameworkCore;
+
+namespace AqarFlow.Repositories
+{
+    public class FollowUpRepository : IFollowUpRepository
+    {
+        private readonly AppDbContext _db;
+        private readonly DbSet<FollowUp> _dbSet;
+
+        public FollowUpRepository(AppDbContext db)
+        {
+            _db = db;
+            _dbSet = _db.Set<FollowUp>();
+        }
+
+
+        // =========================
+        // GET ALL
+        // =========================
+        public List<FollowUpDto> GetAll()
+        {
+            return _dbSet
+                .OrderByDescending(f => f.ContactDate)
+                .Select(f => new FollowUpDto
+                {
+                    Id = f.Id,
+
+                    CustomerName = f.Customer != null
+                        ? f.Customer.Name
+                        : "Unknown",
+
+                    ContactDate = f.ContactDate,
+                    ContactMethod = f.ContactMethod,
+                    Result = f.Result,
+                    NextFollowUpDate = f.NextFollowUpDate,
+                    Status = f.Status
+                })
+                .ToList();
+        }
+
+
+        // =========================
+        // GET BY ID
+        // =========================
+        public FollowUp? GetById(int id)
+        {
+            return _dbSet
+                .Include(f => f.Customer)
+                .FirstOrDefault(f => f.Id == id);
+        }
+
+
+        // =========================
+        // ADD
+        // =========================
+        public void Add(FollowUp followUp)
+        {
+            _dbSet.Add(followUp);
+        }
+
+
+        // =========================
+        // UPDATE
+        // =========================
+        public void Update(FollowUp followUp)
+        {
+            _dbSet.Update(followUp);
+        }
+
+
+        // =========================
+        // DELETE
+        // =========================
+        public void Delete(FollowUp followUp)
+        {
+            _dbSet.Remove(followUp);
+        }
+
+
+        // =========================
+        // SAVE
+        // =========================
+        public void Save()
+        {
+            _db.SaveChanges();
+        }
+
+
+        // =========================
+        // DASHBOARD - TODAY
+        // =========================
+        public int CountForDate(DateTime date)
+        {
+            var startDate = date.Date;
+            var nextDay = startDate.AddDays(1);
+
+            return _dbSet.Count(f =>
+                f.NextFollowUpDate >= startDate &&
+                f.NextFollowUpDate < nextDay);
+        }
+
+
+        // =========================
+        // DASHBOARD - UPCOMING
+        // =========================
+        public List<FollowUp> GetUpcoming(int count)
+        {
+            return _dbSet
+                .Include(f => f.Customer)
+                .Where(f =>
+                    f.NextFollowUpDate.HasValue &&
+                    f.NextFollowUpDate.Value >= DateTime.Now &&
+                    f.Status != "Completed")
+                .OrderBy(f => f.NextFollowUpDate)
+                .Take(count)
+                .ToList();
+        }
+    }
+}
+===== C:\Projects\AqarFlow\AqarFlow\Repositories\ICustomerPropertyInterestRepository.cs =====
+using AqarFlow.DTOs;
+using AqarFlow.Models;
+
+namespace AqarFlow.Repositories
+{
+    public interface ICustomerPropertyInterestRepository
+    {
+        List<CustomerPropertyInterestDto> GetAll();
+
+        CustomerPropertyInterest? GetById(int id);
+
+        void Add(CustomerPropertyInterest interest);
+
+        void Update(CustomerPropertyInterest interest);
+
+        void Delete(CustomerPropertyInterest interest);
+
+        void Save();
+    }
+}
+===== C:\Projects\AqarFlow\AqarFlow\Repositories\ICustomerRepository.cs =====
+using AqarFlow.DTOs;
+using AqarFlow.Models;
+
+namespace AqarFlow.Repositories
+{
+    public interface ICustomerRepository
+    {
+        // CRUD
+        List<CustomerDto> GetAll();
+
+        Customer? GetById(int id);
+
+        void Add(Customer customer);
+
+        void Update(Customer customer);
+
+        void Delete(Customer customer);
+
+        void Save();
+
+
+        // Dashboard
+        int Count();
+
+        int CountByStatus(string status);
+
+        List<Customer> GetRecent(int count);
+
+        int[] GetMonthlyCounts(int year);
+    }
+}
+===== C:\Projects\AqarFlow\AqarFlow\Repositories\IDealRepository.cs =====
+using AqarFlow.DTOs;
+using AqarFlow.Models;
+
+namespace AqarFlow.Repositories
+{
+    public interface IDealRepository
+    {
+        // CRUD
+        List<DealDto> GetAll();
+
+        Deal? GetById(int id);
+
+        void Add(Deal deal);
+
+        void Update(Deal deal);
+
+        void Delete(Deal deal);
+
+        void Save();
+
+
+        // Dashboard
+        int CountActive();
+    }
+}
+===== C:\Projects\AqarFlow\AqarFlow\Repositories\IFollowUpRepository.cs =====
+using AqarFlow.DTOs;
+using AqarFlow.Models;
+
+namespace AqarFlow.Repositories
+{
+    public interface IFollowUpRepository
+    {
+        // CRUD
+        List<FollowUpDto> GetAll();
+
+        FollowUp? GetById(int id);
+
+        void Add(FollowUp followUp);
+
+        void Update(FollowUp followUp);
+
+        void Delete(FollowUp followUp);
+
+        void Save();
+
+
+        // Dashboard
+        int CountForDate(DateTime date);
+
+        List<FollowUp> GetUpcoming(int count);
+    }
+}
+===== C:\Projects\AqarFlow\AqarFlow\Repositories\IPermissionRepository.cs =====
+using AqarFlow.Models;
+
+namespace AqarFlow.Repositories
+{
+    public interface IPermissionRepository
+    {
+        List<Permission> GetAll();
+
+        Permission? GetById(int id);
+
+        void Add(Permission permission);
+
+        void Update(Permission permission);
+
+        void Delete(Permission permission);
+
+        void Save();
+    }
+}
+===== C:\Projects\AqarFlow\AqarFlow\Repositories\IPermissionRoleRepository.cs =====
+using AqarFlow.Models;
+
+namespace AqarFlow.Repositories
+{
+    public interface IPermissionRoleRepository
+    {
+        List<int> GetPermissionIdsByRoleId(int roleId);
+
+        void Add(PermissionRole permissionRole);
+
+        void DeleteByRoleId(int roleId);
+
+        void Save();
+    }
+}
+===== C:\Projects\AqarFlow\AqarFlow\Repositories\IPropertyRepository.cs =====
+using AqarFlow.DTOs;
+using AqarFlow.Models;
+
+namespace AqarFlow.Repositories
+{
+    public interface IPropertyRepository
+    {
+        // CRUD
+        List<PropertyDto> GetAll();
+
+        Property? GetById(int id);
+
+        void Add(Property property);
+
+        void Update(Property property);
+
+        void Delete(Property property);
+
+        void Save();
+
+
+        // Dashboard
+        int Count();
+    }
+}
+===== C:\Projects\AqarFlow\AqarFlow\Repositories\IRoleRepository.cs =====
+using AqarFlow.Models;
+
+namespace AqarFlow.Repositories
+{
+    public interface IRoleRepository
+    {
+        List<Role> GetAll();
+
+        Role? GetById(int id);
+
+        void Add(Role role);
+
+        void Update(Role role);
+
+        void Delete(Role role);
+
+        void Save();
+    }
+}
+===== C:\Projects\AqarFlow\AqarFlow\Repositories\IRoleUserRepository.cs =====
+using AqarFlow.Models;
+
+namespace AqarFlow.Repositories
+{
+    public interface IRoleUserRepository
+    {
+        List<RoleUser> GetByUserId(int userId);
+
+        void Add(RoleUser roleUser);
+
+        void DeleteByUserId(int userId);
+
+        void Save();
+    }
+}
+===== C:\Projects\AqarFlow\AqarFlow\Repositories\IUserRepository.cs =====
+using AqarFlow.DTOs;
+using AqarFlow.Models;
+
+namespace AqarFlow.Repositories
+{
+    public interface IUserRepository
+    {
+        List<UserDto> GetAll();
+
+        User? GetById(int id);
+
+        User? GetByEmail(string email);
+
+        void Add(User user);
+
+        void Update(User user);
+
+        void Delete(User user);
+
+        void Save();
+    }
+}
+===== C:\Projects\AqarFlow\AqarFlow\Repositories\PermissionRepository.cs =====
+using AqarFlow.Data;
+using AqarFlow.Models;
+using Microsoft.EntityFrameworkCore;
+
+namespace AqarFlow.Repositories
+{
+    public class PermissionRepository : IPermissionRepository
+    {
+        private readonly AppDbContext _db;
+        private readonly DbSet<Permission> _dbSet;
+
+        public PermissionRepository(AppDbContext db)
+        {
+            _db = db;
+            _dbSet = _db.Set<Permission>();
+        }
+
+        // Get all permissions
+        public List<Permission> GetAll()
+        {
+            return _dbSet.ToList();
+        }
+
+        // Get permission by ID
+        public Permission? GetById(int id)
+        {
+            return _dbSet.Find(id);
+        }
+
+        // Add new permission
+        public void Add(Permission permission)
+        {
+            _dbSet.Add(permission);
+        }
+
+        // Update permission
+        public void Update(Permission permission)
+        {
+            _dbSet.Update(permission);
+        }
+
+        // Delete permission
+        public void Delete(Permission permission)
+        {
+            _dbSet.Remove(permission);
+        }
+
+        // Save changes
+        public void Save()
+        {
+            _db.SaveChanges();
+        }
+    }
+}
+===== C:\Projects\AqarFlow\AqarFlow\Repositories\PermissionRoleRepository.cs =====
+using AqarFlow.Data;
+using AqarFlow.Models;
+using Microsoft.EntityFrameworkCore;
+
+namespace AqarFlow.Repositories
+{
+    public class PermissionRoleRepository : IPermissionRoleRepository
+    {
+        private readonly AppDbContext _db;
+        private readonly DbSet<PermissionRole> _dbSet;
+
+        public PermissionRoleRepository(AppDbContext db)
+        {
+            _db = db;
+            _dbSet = _db.Set<PermissionRole>();
+        }
+
+        // Get permission IDs assigned to a role
+        public List<int> GetPermissionIdsByRoleId(int roleId)
+        {
+            return _dbSet
+                .Where(pr => pr.RoleId == roleId)
+                .Select(pr => pr.PermissionId)
+                .ToList();
+        }
+
+        // Add permission to role
+        public void Add(PermissionRole permissionRole)
+        {
+            _dbSet.Add(permissionRole);
+        }
+
+        // Delete all permissions assigned to a role
+        public void DeleteByRoleId(int roleId)
+        {
+            var permissionRoles = _dbSet
+                .Where(pr => pr.RoleId == roleId)
+                .ToList();
+
+            _dbSet.RemoveRange(permissionRoles);
+        }
+
+        // Save changes
+        public void Save()
+        {
+            _db.SaveChanges();
+        }
+    }
+}
+===== C:\Projects\AqarFlow\AqarFlow\Repositories\PermissionsController.cs =====
+namespace AqarFlow.Repositories
+{
+    public class PermissionsController
+    {
+    }
+}
+===== C:\Projects\AqarFlow\AqarFlow\Repositories\PropertyRepository.cs =====
+using AqarFlow.Data;
+using AqarFlow.DTOs;
+using AqarFlow.Models;
+using Microsoft.EntityFrameworkCore;
+
+namespace AqarFlow.Repositories
+{
+    public class PropertyRepository : IPropertyRepository
+    {
+        private readonly AppDbContext _db;
+        private readonly DbSet<Property> _dbSet;
+
+        public PropertyRepository(AppDbContext db)
+        {
+            _db = db;
+            _dbSet = _db.Set<Property>();
+        }
+
+
+        // =========================
+        // GET ALL
+        // =========================
+        public List<PropertyDto> GetAll()
+        {
+            return _dbSet
+                .OrderByDescending(p => p.CreatedAt)
+                .Select(p => new PropertyDto
+                {
+                    Id = p.Id,
+                    Title = p.Title,
+                    PropertyType = p.PropertyType,
+                    City = p.City,
+                    Area = p.Area,
+                    Price = p.Price,
+                    Status = p.Status,
+                    ImagePath = p.ImagePath
+                })
+                .ToList();
+        }
+
+
+        // =========================
+        // GET BY ID
+        // =========================
+        public Property? GetById(int id)
+        {
+            return _dbSet.Find(id);
+        }
+
+
+        // =========================
+        // ADD
+        // =========================
+        public void Add(Property property)
+        {
+            _dbSet.Add(property);
+        }
+
+
+        // =========================
+        // UPDATE
+        // =========================
+        public void Update(Property property)
+        {
+            _dbSet.Update(property);
+        }
+
+
+        // =========================
+        // DELETE
+        // =========================
+        public void Delete(Property property)
+        {
+            _dbSet.Remove(property);
+        }
+
+
+        // =========================
+        // SAVE
+        // =========================
+        public void Save()
+        {
+            _db.SaveChanges();
+        }
+
+
+        // =========================
+        // DASHBOARD - TOTAL
+        // =========================
+        public int Count()
+        {
+            return _dbSet.Count();
+        }
+    }
+}
+===== C:\Projects\AqarFlow\AqarFlow\Repositories\RoleRepository.cs =====
+using AqarFlow.Data;
+using AqarFlow.Models;
+using Microsoft.EntityFrameworkCore;
+
+namespace AqarFlow.Repositories
+{
+    public class RoleRepository : IRoleRepository
+    {
+        private readonly AppDbContext _db;
+        private readonly DbSet<Role> _dbSet;
+
+        public RoleRepository(AppDbContext db)
+        {
+            _db = db;
+            _dbSet = _db.Set<Role>();
+        }
+
+        public List<Role> GetAll()
+        {
+            return _dbSet
+                .OrderBy(r => r.Name)
+                .ToList();
+        }
+
+        public Role? GetById(int id)
+        {
+            return _dbSet.Find(id);
+        }
+
+        public void Add(Role role)
+        {
+            _dbSet.Add(role);
+        }
+
+        public void Update(Role role)
+        {
+            _dbSet.Update(role);
+        }
+
+        public void Delete(Role role)
+        {
+            _dbSet.Remove(role);
+        }
+
+        public void Save()
+        {
+            _db.SaveChanges();
+        }
+    }
+}
+===== C:\Projects\AqarFlow\AqarFlow\Repositories\RolesController.cs =====
+namespace AqarFlow.Repositories
+{
+    public class RolesController
+    {
+    }
+}
+===== C:\Projects\AqarFlow\AqarFlow\Repositories\RoleUserRepository.cs =====
+using AqarFlow.Data;
+using AqarFlow.Models;
+using Microsoft.EntityFrameworkCore;
+
+namespace AqarFlow.Repositories
+{
+    public class RoleUserRepository : IRoleUserRepository
+    {
+        private readonly AppDbContext _db;
+        private readonly DbSet<RoleUser> _dbSet;
+
+        public RoleUserRepository(AppDbContext db)
+        {
+            _db = db;
+            _dbSet = _db.Set<RoleUser>();
+        }
+
+        public List<RoleUser> GetByUserId(int userId)
+        {
+            return _dbSet
+                .Where(ru => ru.UserId == userId)
+                .ToList();
+        }
+
+        public void Add(RoleUser roleUser)
+        {
+            _dbSet.Add(roleUser);
+        }
+
+        public void DeleteByUserId(int userId)
+        {
+            var roleUsers = _dbSet
+                .Where(ru => ru.UserId == userId)
+                .ToList();
+
+            _dbSet.RemoveRange(roleUsers);
+        }
+
+        public void Save()
+        {
+            _db.SaveChanges();
+        }
+    }
+}
+===== C:\Projects\AqarFlow\AqarFlow\Repositories\UserRepository.cs =====
+using AqarFlow.Data;
+using AqarFlow.DTOs;
+using AqarFlow.Models;
+using Microsoft.EntityFrameworkCore;
+
+namespace AqarFlow.Repositories
+{
+    public class UserRepository : IUserRepository
+    {
+        private readonly AppDbContext _db;
+        private readonly DbSet<User> _dbSet;
+
+        public UserRepository(AppDbContext db)
+        {
+            _db = db;
+            _dbSet = _db.Set<User>();
+        }
+
+        // Get only the data needed for the users list
+        public List<UserDto> GetAll()
+        {
+            return _dbSet
+                .OrderByDescending(u => u.CreatedAt)
+                .Select(u => new UserDto
+                {
+                    Id = u.Id,
+                    FullName = u.FullName,
+                    Email = u.Email,
+
+                    RoleName = u.RoleUsers
+                        .Select(ru =>
+                            ru.Role != null
+                                ? ru.Role.Name
+                                : null)
+                        .FirstOrDefault(),
+
+                    IsActive = u.IsActive,
+                    CreatedAt = u.CreatedAt
+                })
+                .ToList();
+        }
+
+        // Get user with roles
+        public User? GetById(int id)
+        {
+            return _dbSet
+                .Include(u => u.RoleUsers)
+                    .ThenInclude(ru => ru.Role)
+                .FirstOrDefault(u => u.Id == id);
+        }
+
+        // Get user by email
+        public User? GetByEmail(string email)
+        {
+            return _dbSet
+                .Include(u => u.RoleUsers)
+                    .ThenInclude(ru => ru.Role)
+                .FirstOrDefault(u => u.Email == email);
+        }
+
+        // Add new user
+        public void Add(User user)
+        {
+            _dbSet.Add(user);
+        }
+
+        // Update existing user
+        public void Update(User user)
+        {
+            _dbSet.Update(user);
+        }
+
+        // Delete user
+        public void Delete(User user)
+        {
+            _dbSet.Remove(user);
+        }
+
+        // Save changes
+        public void Save()
+        {
+            _db.SaveChanges();
+        }
+    }
+}
+===== C:\Projects\AqarFlow\AqarFlow\Data\AppDbContext.cs =====
+using AqarFlow.Models;
+using Microsoft.EntityFrameworkCore;
+
+namespace AqarFlow.Data
+{
+    // AppDbContext:
+    // Connects the application models to the database
+    // and allows Entity Framework Core to create and manage the tables.
+    public class AppDbContext : DbContext
+    {
+        // Constructor used to receive database configuration
+        public AppDbContext(DbContextOptions<AppDbContext> options)
+            : base(options)
+        {
+        }
+
+        // Customer table
+        public DbSet<Customer> Customers { get; set; }
+
+        // Property table
+        public DbSet<Property> Properties { get; set; }
+
+        // Follow-up table
+        public DbSet<FollowUp> FollowUps { get; set; }
+
+        // Customer and property interest relationship table
+        public DbSet<CustomerPropertyInterest> CustomerPropertyInterests { get; set; }
+
+        // Deal table
+        public DbSet<Deal> Deals { get; set; }
+
+
+        // Permissions System Tables
+        public DbSet<Role> Roles { get; set; }
+
+        public DbSet<Permission> Permissions { get; set; }
+
+        public DbSet<PermissionRole> PermissionRoles { get; set; }
+
+
+        // User System Tables
+        public DbSet<User> Users { get; set; }
+
+        public DbSet<RoleUser> RoleUsers { get; set; }
+
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+
+
+            // ---------------------------------
+            // Role and Permission Relationship
+            // ---------------------------------
+
+            // Composite Primary Key for PermissionRole
+            modelBuilder.Entity<PermissionRole>()
+                .HasKey(pr => new
+                {
+                    pr.RoleId,
+                    pr.PermissionId
+                });
+
+
+            // Role -> PermissionRole Relationship
+            modelBuilder.Entity<PermissionRole>()
+                .HasOne(pr => pr.Role)
+                .WithMany(r => r.PermissionRoles)
+                .HasForeignKey(pr => pr.RoleId);
+
+
+            // Permission -> PermissionRole Relationship
+            modelBuilder.Entity<PermissionRole>()
+                .HasOne(pr => pr.Permission)
+                .WithMany(p => p.PermissionRoles)
+                .HasForeignKey(pr => pr.PermissionId);
+
+
+
+            // ---------------------------------
+            // User and Role Relationship
+            // ---------------------------------
+
+            // Composite Primary Key for RoleUser
+            modelBuilder.Entity<RoleUser>()
+                .HasKey(ru => new
+                {
+                    ru.UserId,
+                    ru.RoleId
+                });
+
+
+            // User -> RoleUser Relationship
+            modelBuilder.Entity<RoleUser>()
+                .HasOne(ru => ru.User)
+                .WithMany(u => u.RoleUsers)
+                .HasForeignKey(ru => ru.UserId);
+
+
+            // Role -> RoleUser Relationship
+            modelBuilder.Entity<RoleUser>()
+                .HasOne(ru => ru.Role)
+                .WithMany(r => r.RoleUsers)
+                .HasForeignKey(ru => ru.RoleId);
+        }
+    }
+}
+===== C:\Projects\AqarFlow\AqarFlow.Infrastructure\Data\AppDbContext.cs =====
+using AqarFlow.Domain.Models;
+using Microsoft.EntityFrameworkCore;
+
+namespace AqarFlow.Infrastructure.Data
+{
+    public class AppDbContext : DbContext
+    {
+        public AppDbContext(
+            DbContextOptions<AppDbContext> options)
+            : base(options)
+        {
+        }
+
+        // =========================
+        // DB SETS
+        // =========================
+
+        public DbSet<Customer> Customers { get; set; }
+        public DbSet<Property> Properties { get; set; }
+        public DbSet<FollowUp> FollowUps { get; set; }
+        public DbSet<CustomerPropertyInterest> CustomerPropertyInterests { get; set; }
+        public DbSet<Deal> Deals { get; set; }
+        public DbSet<Role> Roles { get; set; }
+        public DbSet<Permission> Permissions { get; set; }
+        public DbSet<PermissionRole> PermissionRoles { get; set; }
+        public DbSet<User> Users { get; set; }
+        public DbSet<RoleUser> RoleUsers { get; set; }
+
+
+        // =========================
+        // MODEL CONFIGURATION
+        // =========================
+
+        protected override void OnModelCreating(
+            ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+
+            // Customer decimal precision
+            modelBuilder.Entity<Customer>()
+                .Property(c => c.MinBudget)
+                .HasPrecision(18, 2);
+
+            modelBuilder.Entity<Customer>()
+                .Property(c => c.MaxBudget)
+                .HasPrecision(18, 2);
+
+            // Property decimal precision
+            modelBuilder.Entity<Property>()
+                .Property(p => p.Price)
+                .HasPrecision(18, 2);
+
+            modelBuilder.Entity<Property>()
+                .Property(p => p.PropertySize)
+                .HasPrecision(18, 2);
+
+            // Deal decimal precision
+            modelBuilder.Entity<Deal>()
+                .Property(d => d.DealValue)
+                .HasPrecision(18, 2);
+
+            modelBuilder.Entity<Deal>()
+                .Property(d => d.Commission)
+                .HasPrecision(18, 2);
+
+
+            // PermissionRole composite key
+            modelBuilder.Entity<PermissionRole>()
+                .HasKey(pr => new
+                {
+                    pr.RoleId,
+                    pr.PermissionId
+                });
+
+            modelBuilder.Entity<PermissionRole>()
+                .HasOne(pr => pr.Role)
+                .WithMany(r => r.PermissionRoles)
+                .HasForeignKey(pr => pr.RoleId);
+
+            modelBuilder.Entity<PermissionRole>()
+                .HasOne(pr => pr.Permission)
+                .WithMany(p => p.PermissionRoles)
+                .HasForeignKey(pr => pr.PermissionId);
+
+
+            // RoleUser composite key
+            modelBuilder.Entity<RoleUser>()
+                .HasKey(ru => new
+                {
+                    ru.UserId,
+                    ru.RoleId
+                });
+
+            modelBuilder.Entity<RoleUser>()
+                .HasOne(ru => ru.User)
+                .WithMany(u => u.RoleUsers)
+                .HasForeignKey(ru => ru.UserId);
+
+            modelBuilder.Entity<RoleUser>()
+                .HasOne(ru => ru.Role)
+                .WithMany(r => r.RoleUsers)
+                .HasForeignKey(ru => ru.RoleId);
+        }
+    }
+}
+===== C:\Projects\AqarFlow\AqarFlow\Models\Customer.cs =====
+using System.ComponentModel.DataAnnotations;
+using Microsoft.EntityFrameworkCore;
+
+namespace AqarFlow.Models
+{
+    // Customer Table:
+    // Stores customer information and their real estate requirements.
+    // It helps the real estate marketer manage customer needs,
+    // track their status, and match them with suitable properties.
+
+
+    public class Customer
+
+    {
+        // Unique identifier for each customer (Primary Key)
+        public int Id { get; set; }
+
+        // Customer's full name
+        [Required]
+        public string Name { get; set; }
+
+        // Customer's phone number
+        [Required]
+        public string Phone { get; set; }
+
+        // Customer's email address (optional)
+        public string? Email { get; set; }
+
+        // Customer's purpose: Buy / Rent / Invest
+        [Required]
+        public string Purpose { get; set; }
+
+        // Preferred property type: Villa / Apartment / Land / Floor
+        public string? PropertyType { get; set; }
+
+        // Preferred city
+        public string? PreferredCity { get; set; }
+
+        // Preferred area or neighborhood
+        public string? PreferredArea { get; set; }
+
+        // Minimum customer budget
+        [Precision(18, 2)]
+        public decimal? MinBudget { get; set; }
+
+        // Maximum customer budget
+        [Precision(18, 2)]
+        public decimal? MaxBudget { get; set; }
+
+        // Preferred number of bedrooms
+        public int? Bedrooms { get; set; }
+
+        // Customer status in the system
+        // New customers are automatically assigned "New"
+        public string Status { get; set; } = "New";
+
+        // Customer source: Website / WhatsApp / Instagram / Referral / Other
+        public string? Source { get; set; }
+
+        // Additional notes about the customer or their requirements
+        public string? Notes { get; set; }
+
+        // Date and time when the customer was added to the system
+        public DateTime CreatedAt { get; set; } = DateTime.Now;
+
+        // Date and time of the last update to the customer's information
+        public DateTime? UpdatedAt { get; set; }
+
+
+
+    }
+}
+===== C:\Projects\AqarFlow\AqarFlow\Models\CustomerPropertyInterest.cs =====
+using System.ComponentModel.DataAnnotations;
+
+namespace AqarFlow.Models
+{
+    // Customer Property Interest Table:
+    // Connects customers with properties they are interested in
+    // or properties recommended to them by the real estate marketer.
+
+
+    public class CustomerPropertyInterest
+
+    {
+        // Unique identifier for each customer-property interest record
+        // Primary Key
+        public int Id { get; set; }
+
+        // Identifies the related customer
+        // Foreign Key
+        [Required]
+        public int CustomerId { get; set; }
+
+        // Identifies the related property
+        // Foreign Key
+        [Required]
+        public int PropertyId { get; set; }
+
+        // Customer's interest status for this property
+        // Interested / Viewed / Rejected / Negotiating / Selected
+        public string Status { get; set; } = "Interested";
+
+        // Additional notes about the customer's interest
+        public string? Notes { get; set; }
+
+        // Date and time when the property was linked to the customer
+        public DateTime CreatedAt { get; set; } = DateTime.Now;
+
+        // Navigation Property
+        // Connects this record to the related customer
+        public Customer? Customer { get; set; }
+
+        // Navigation Property
+        // Connects this record to the related property
+        public Property? Property { get; set; }
+
+
+    }
+}
+===== C:\Projects\AqarFlow\AqarFlow\Models\Deal.cs =====
+using System.ComponentModel.DataAnnotations;
+using Microsoft.EntityFrameworkCore;
+
+namespace AqarFlow.Models
+{
+    // Deal Table:
+    // Stores real estate deals between customers and properties.
+    // It helps track deal progress, value, commission,
+    // and whether the deal was completed or cancelled.
+
+    public class Deal
+
+
+    {
+        // Unique identifier for each deal (Primary Key)
+        public int Id { get; set; }
+
+        // Identifies the customer related to the deal (Foreign Key)
+        [Required]
+        public int CustomerId { get; set; }
+
+        // Identifies the property related to the deal (Foreign Key)
+        [Required]
+        public int PropertyId { get; set; }
+
+        // Deal type: Sale / Rent
+        [Required]
+        public string DealType { get; set; }
+
+        // Total value of the deal
+        [Precision(18, 2)]
+        public decimal? DealValue { get; set; }
+
+        // Commission earned from the deal
+        [Precision(18, 2)]
+        public decimal? Commission { get; set; }
+
+        // Deal status: Open / Negotiating / Completed / Cancelled
+        public string Status { get; set; } = "Open";
+
+        // Date when the deal was completed or recorded
+        public DateTime? DealDate { get; set; }
+
+        // Additional notes about the deal
+        public string? Notes { get; set; }
+
+        // Date and time when the deal record was created
+        public DateTime CreatedAt { get; set; } = DateTime.Now;
+
+        // Navigation Property
+        // Connects this deal to the related customer
+        public Customer? Customer { get; set; }
+
+        // Navigation Property
+        // Connects this deal to the related property
+        public Property? Property { get; set; }
+
+
+    }
+}
+===== C:\Projects\AqarFlow\AqarFlow\Models\ErrorViewModel.cs =====
+namespace AqarFlow.Models
+{
+    public class ErrorViewModel
+    {
+        public string? RequestId { get; set; }
+
+        public bool ShowRequestId => !string.IsNullOrEmpty(RequestId);
+    }
+}
+===== C:\Projects\AqarFlow\AqarFlow\Models\FollowUp.cs =====
+using System.ComponentModel.DataAnnotations;
+
+namespace AqarFlow.Models
+{
+    // FollowUp Table:
+    // Stores all follow-up activities and communications with customers.
+    // It helps the real estate marketer track customer interactions
+    // and schedule future follow-ups.
+
+
+    public class FollowUp
+
+
+    {
+        // Unique identifier for each follow-up (Primary Key)
+        public int Id { get; set; }
+
+        // Identifies the customer related to this follow-up (Foreign Key)
+        [Required]
+        public int CustomerId { get; set; }
+
+        // Date and time of the communication with the customer
+        public DateTime ContactDate { get; set; } = DateTime.Now;
+
+        // Communication method: Call / WhatsApp / Meeting / Email
+        public string? ContactMethod { get; set; }
+
+        // Result of the communication
+        // Example: Interested / No Answer / Requested More Information
+        public string? Result { get; set; }
+
+        // Date and time for the next follow-up with the customer
+        public DateTime? NextFollowUpDate { get; set; }
+
+        // Follow-up status: Pending / Completed / Cancelled
+        public string Status { get; set; } = "Pending";
+
+        // Additional notes about the follow-up
+        public string? Notes { get; set; }
+
+        // Date and time when the follow-up record was created
+        public DateTime CreatedAt { get; set; } = DateTime.Now;
+
+        // Navigation Property
+        // Connects this follow-up to the related customer
+        public Customer? Customer { get; set; }
+
+
+
+
+    }
+}
+===== C:\Projects\AqarFlow\AqarFlow\Models\Permission.cs =====
+namespace AqarFlow.Models
+{
+    // Permission Table:
+    // Stores all available permissions in the system.
+    // Example: View Customers, Create Customers, Edit Customers, Delete Customers
+    public class Permission
+    {
+        // Primary Key
+        public int Id { get; set; }
+
+        // Permission name
+        public string Name { get; set; } = "";
+
+        // Navigation Property
+        // One permission can be assigned to many roles
+        public ICollection<PermissionRole>? PermissionRoles { get; set; }
+    }
+}
+===== C:\Projects\AqarFlow\AqarFlow\Models\PermissionRole.cs =====
+using System.ComponentModel.DataAnnotations.Schema;
+
+namespace AqarFlow.Models
+{
+    // PermissionRole Table:
+    // Connects Roles with Permissions.
+    // A role can have many permissions,
+    // and a permission can belong to many roles.
+    public class PermissionRole
+    {
+        // Foreign Key for Permission
+        [ForeignKey("Permission")]
+        public int PermissionId { get; set; }
+
+        // Navigation Property
+        public Permission? Permission { get; set; }
+
+        // Foreign Key for Role
+        [ForeignKey("Role")]
+        public int RoleId { get; set; }
+
+        // Navigation Property
+        public Role? Role { get; set; }
+    }
+}
+===== C:\Projects\AqarFlow\AqarFlow\Models\Property.cs =====
+using System.ComponentModel.DataAnnotations;
+using Microsoft.EntityFrameworkCore;
+
+namespace AqarFlow.Models
+{
+    public class Property
+    {
+        public int Id { get; set; }
+
+        [Required]
+        public string Title { get; set; }
+
+        [Required]
+        public string PropertyType { get; set; }
+
+        [Required]
+        public string City { get; set; }
+
+        public string? Area { get; set; }
+
+        [Required]
+        [Precision(18, 2)]
+        public decimal Price { get; set; }
+
+        public int? Bedrooms { get; set; }
+
+        public int? Bathrooms { get; set; }
+
+        [Precision(18, 2)]
+        public decimal? PropertySize { get; set; }
+
+        public string Status { get; set; } = "Available";
+
+        public string? Description { get; set; }
+
+        // Stores the uploaded property image path
+        public string? ImagePath { get; set; }
+
+        public DateTime CreatedAt { get; set; } = DateTime.Now;
+
+        public DateTime? UpdatedAt { get; set; }
+    }
+}
+
+===== C:\Projects\AqarFlow\AqarFlow\Models\Role.cs =====
+namespace AqarFlow.Models
+{
+    // Role Table:
+    // Stores the roles available in the system.
+    // Example: Admin, Marketer, Viewer
+    public class Role
+    {
+        // Primary Key
+        public int Id { get; set; }
+
+        // Role name
+        public string Name { get; set; } = "";
+
+        // Navigation Property
+        // One role can have many permissions
+        public ICollection<PermissionRole> PermissionRoles { get; set; }
+            = new List<PermissionRole>();
+
+        // Navigation Property
+        // One role can be assigned to many users
+        public ICollection<RoleUser> RoleUsers { get; set; }
+            = new List<RoleUser>();
+    }
+}
+
+===== C:\Projects\AqarFlow\AqarFlow\Models\RoleUser.cs =====
+namespace AqarFlow.Models
+{
+    public class RoleUser
+    {
+        // Foreign key for User
+        public int UserId { get; set; }
+
+        public User? User { get; set; }
+
+
+        // Foreign key for Role
+        public int RoleId { get; set; }
+
+        public Role? Role { get; set; }
+    }
+}
+===== C:\Projects\AqarFlow\AqarFlow\Models\User.cs =====
+using System.ComponentModel.DataAnnotations;
+
+namespace AqarFlow.Models
+{
+    public class User
+    {
+        // Primary Key
+        public int Id { get; set; }
+
+        [Required]
+        public string FullName { get; set; } = "";
+
+        [Required]
+        [EmailAddress]
+        public string Email { get; set; } = "";
+
+        // Stores the hashed password
+        [Required]
+        public string PasswordHash { get; set; } = "";
+
+        // Determines if the user account is active
+        public bool IsActive { get; set; } = true;
+
+        // User creation date
+        public DateTime CreatedAt { get; set; } = DateTime.Now;
+
+        // Navigation Property
+        // One user can have one or more roles
+        public ICollection<RoleUser> RoleUsers { get; set; }
+            = new List<RoleUser>();
+    }
+}
+
+===== C:\Projects\AqarFlow\AqarFlow.Domain\Models\Customer.cs =====
+using System.ComponentModel.DataAnnotations;
+
+
+namespace AqarFlow.Domain.Models
+{
+    // Customer Table:
+    // Stores customer information and their real estate requirements.
+    // It helps the real estate marketer manage customer needs,
+    // track their status, and match them with suitable properties.
+
+
+    public class Customer
+
+    {
+        // Unique identifier for each customer (Primary Key)
+        public int Id { get; set; }
+
+        // Customer's full name
+        [Required]
+        public string Name { get; set; }
+
+        // Customer's phone number
+        [Required]
+        public string Phone { get; set; }
+
+        // Customer's email address (optional)
+        public string? Email { get; set; }
+
+        // Customer's purpose: Buy / Rent / Invest
+        [Required]
+        public string Purpose { get; set; }
+
+        // Preferred property type: Villa / Apartment / Land / Floor
+        public string? PropertyType { get; set; }
+
+        // Preferred city
+        public string? PreferredCity { get; set; }
+
+        // Preferred area or neighborhood
+        public string? PreferredArea { get; set; }
+
+        // Minimum customer budget
+        public decimal? MinBudget { get; set; }
+
+        // Maximum customer budget
+        public decimal? MaxBudget { get; set; }
+       
+
+        // Preferred number of bedrooms
+        public int? Bedrooms { get; set; }
+
+        // Customer status in the system
+        // New customers are automatically assigned "New"
+        public string Status { get; set; } = "New";
+
+        // Customer source: Website / WhatsApp / Instagram / Referral / Other
+        public string? Source { get; set; }
+
+        // Additional notes about the customer or their requirements
+        public string? Notes { get; set; }
+
+        // Date and time when the customer was added to the system
+        public DateTime CreatedAt { get; set; } = DateTime.Now;
+
+        // Date and time of the last update to the customer's information
+        public DateTime? UpdatedAt { get; set; }
+
+
+
+    }
+}
+===== C:\Projects\AqarFlow\AqarFlow.Domain\Models\CustomerPropertyInterest.cs =====
+using System.ComponentModel.DataAnnotations;
+
+namespace AqarFlow.Domain.Models
+{
+    // Customer Property Interest Table:
+    // Connects customers with properties they are interested in
+    // or properties recommended to them by the real estate marketer.
+
+
+    public class CustomerPropertyInterest
+
+    {
+        // Unique identifier for each customer-property interest record
+        // Primary Key
+        public int Id { get; set; }
+
+        // Identifies the related customer
+        // Foreign Key
+        [Required]
+        public int CustomerId { get; set; }
+
+        // Identifies the related property
+        // Foreign Key
+        [Required]
+        public int PropertyId { get; set; }
+
+        // Customer's interest status for this property
+        // Interested / Viewed / Rejected / Negotiating / Selected
+        public string Status { get; set; } = "Interested";
+
+        // Additional notes about the customer's interest
+        public string? Notes { get; set; }
+
+        // Date and time when the property was linked to the customer
+        public DateTime CreatedAt { get; set; } = DateTime.Now;
+
+        // Navigation Property
+        // Connects this record to the related customer
+        public Customer? Customer { get; set; }
+
+        // Navigation Property
+        // Connects this record to the related property
+        public Property? Property { get; set; }
+
+
+    }
+}
+
+
+===== C:\Projects\AqarFlow\AqarFlow.Domain\Models\Deal.cs =====
+using System.ComponentModel.DataAnnotations;
+
+
+namespace AqarFlow.Domain.Models
+{
+    // Deal Table:
+    // Stores real estate deals between customers and properties.
+    // It helps track deal progress, value, commission,
+    // and whether the deal was completed or cancelled.
+
+    public class Deal
+
+
+    {
+        // Unique identifier for each deal (Primary Key)
+        public int Id { get; set; }
+
+        // Identifies the customer related to the deal (Foreign Key)
+        [Required]
+        public int CustomerId { get; set; }
+
+        // Identifies the property related to the deal (Foreign Key)
+        [Required]
+        public int PropertyId { get; set; }
+
+        // Deal type: Sale / Rent
+        [Required]
+        public string DealType { get; set; }
+
+        // Total value of the deal
+        public decimal? DealValue { get; set; }
+
+        // Commission earned from the deal
+        public decimal? Commission { get; set; }
+       
+
+        // Deal status: Open / Negotiating / Completed / Cancelled
+        public string Status { get; set; } = "Open";
+
+        // Date when the deal was completed or recorded
+        public DateTime? DealDate { get; set; }
+
+        // Additional notes about the deal
+        public string? Notes { get; set; }
+
+        // Date and time when the deal record was created
+        public DateTime CreatedAt { get; set; } = DateTime.Now;
+
+        // Navigation Property
+        // Connects this deal to the related customer
+        public Customer? Customer { get; set; }
+
+        // Navigation Property
+        // Connects this deal to the related property
+        public Property? Property { get; set; }
+
+
+    }
+}
+===== C:\Projects\AqarFlow\AqarFlow.Domain\Models\FollowUp.cs =====
+using System.ComponentModel.DataAnnotations;
+
+namespace AqarFlow.Domain.Models
+{
+    // FollowUp Table:
+    // Stores all follow-up activities and communications with customers.
+    // It helps the real estate marketer track customer interactions
+    // and schedule future follow-ups.
+
+
+    public class FollowUp
+
+
+    {
+        // Unique identifier for each follow-up (Primary Key)
+        public int Id { get; set; }
+
+        // Identifies the customer related to this follow-up (Foreign Key)
+        [Required]
+        public int CustomerId { get; set; }
+
+        // Date and time of the communication with the customer
+        public DateTime ContactDate { get; set; } = DateTime.Now;
+
+        // Communication method: Call / WhatsApp / Meeting / Email
+        public string? ContactMethod { get; set; }
+
+        // Result of the communication
+        // Example: Interested / No Answer / Requested More Information
+        public string? Result { get; set; }
+
+        // Date and time for the next follow-up with the customer
+        public DateTime? NextFollowUpDate { get; set; }
+
+        // Follow-up status: Pending / Completed / Cancelled
+        public string Status { get; set; } = "Pending";
+
+        // Additional notes about the follow-up
+        public string? Notes { get; set; }
+
+        // Date and time when the follow-up record was created
+        public DateTime CreatedAt { get; set; } = DateTime.Now;
+
+        // Navigation Property
+        // Connects this follow-up to the related customer
+        public Customer? Customer { get; set; }
+
+
+
+
+    }
+}
+
+===== C:\Projects\AqarFlow\AqarFlow.Domain\Models\Permission.cs =====
+namespace AqarFlow.Domain.Models
+{
+    // Permission Table:
+    // Stores all available permissions in the system.
+    // Example: View Customers, Create Customers, Edit Customers, Delete Customers
+    public class Permission
+    {
+        // Primary Key
+        public int Id { get; set; }
+
+        // Permission name
+        public string Name { get; set; } = "";
+
+        // Navigation Property
+        // One permission can be assigned to many roles
+        public ICollection<PermissionRole>? PermissionRoles { get; set; }
+    }
+}
+===== C:\Projects\AqarFlow\AqarFlow.Domain\Models\PermissionRole.cs =====
+using System.ComponentModel.DataAnnotations.Schema;
+
+namespace AqarFlow.Domain.Models
+{
+    // PermissionRole Table:
+    // Connects Roles with Permissions.
+    // A role can have many permissions,
+    // and a permission can belong to many roles.
+    public class PermissionRole
+    {
+        // Foreign Key for Permission
+        [ForeignKey("Permission")]
+        public int PermissionId { get; set; }
+
+        // Navigation Property
+        public Permission? Permission { get; set; }
+
+        // Foreign Key for Role
+        [ForeignKey("Role")]
+        public int RoleId { get; set; }
+
+        // Navigation Property
+        public Role? Role { get; set; }
+    }
+}
+
+===== C:\Projects\AqarFlow\AqarFlow.Domain\Models\Property.cs =====
+using System.ComponentModel.DataAnnotations;
+
+
+namespace AqarFlow.Domain.Models
+{
+    public class Property
+    {
+        public int Id { get; set; }
+
+        [Required]
+        public string Title { get; set; }
+
+        [Required]
+        public string PropertyType { get; set; }
+
+        [Required]
+        public string City { get; set; }
+
+        public string? Area { get; set; }
+
+        [Required]
+        public decimal Price { get; set; }
+
+        public int? Bedrooms { get; set; }
+
+        public int? Bathrooms { get; set; }
+
+        public decimal? PropertySize { get; set; }
+
+        public string Status { get; set; } = "Available";
+
+        public string? Description { get; set; }
+
+        // Stores the uploaded property image path
+        public string? ImagePath { get; set; }
+
+        public DateTime CreatedAt { get; set; } = DateTime.Now;
+
+        public DateTime? UpdatedAt { get; set; }
+    }
+}
+
+===== C:\Projects\AqarFlow\AqarFlow.Domain\Models\Role.cs =====
+namespace AqarFlow.Domain.Models
+{
+    // Role Table:
+    // Stores the roles available in the system.
+    // Example: Admin, Marketer, Viewer
+    public class Role
+    {
+        // Primary Key
+        public int Id { get; set; }
+
+        // Role name
+        public string Name { get; set; } = "";
+
+        // Navigation Property
+        // One role can have many permissions
+        public ICollection<PermissionRole> PermissionRoles { get; set; }
+            = new List<PermissionRole>();
+
+        // Navigation Property
+        // One role can be assigned to many users
+        public ICollection<RoleUser> RoleUsers { get; set; }
+            = new List<RoleUser>();
+    }
+}
+
+===== C:\Projects\AqarFlow\AqarFlow.Domain\Models\RoleUser.cs =====
+namespace AqarFlow.Domain.Models
+{
+    public class RoleUser
+    {
+        // Foreign key for User
+        public int UserId { get; set; }
+
+        public User? User { get; set; }
+
+
+        // Foreign key for Role
+        public int RoleId { get; set; }
+
+        public Role? Role { get; set; }
+    }
+}
+===== C:\Projects\AqarFlow\AqarFlow.Domain\Models\User.cs =====
+using System.ComponentModel.DataAnnotations;
+
+namespace AqarFlow.Domain.Models
+{
+    public class User
+    {
+        // Primary Key
+        public int Id { get; set; }
+
+        [Required]
+        public string FullName { get; set; } = "";
+
+        [Required]
+        [EmailAddress]
+        public string Email { get; set; } = "";
+
+        // Stores the hashed password
+        [Required]
+        public string PasswordHash { get; set; } = "";
+
+        // Determines if the user account is active
+        public bool IsActive { get; set; } = true;
+
+        // User creation date
+        public DateTime CreatedAt { get; set; } = DateTime.Now;
+
+        // Navigation Property
+        // One user can have one or more roles
+        public ICollection<RoleUser> RoleUsers { get; set; }
+            = new List<RoleUser>();
+    }
+}
+
+===== C:\Projects\AqarFlow\AqarFlow\Controllers\AccountsController.cs =====
+using AqarFlow.Models;
+using AqarFlow.Repositories;
+using AqarFlow.ViewModels;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
+
+namespace AqarFlow.Controllers
+{
+    public class AccountsController : Controller
+    {
+        private readonly IUserRepository _userRepository;
+
+        public AccountsController(
+            IUserRepository userRepository)
+        {
+            _userRepository = userRepository;
+        }
+
+
+        // =========================
+        // LOGIN - GET
+        // Display login page
+        // =========================
+        [HttpGet]
+        public IActionResult Login()
+        {
+            return View();
+        }
+
+
+        // =========================
+        // LOGIN - POST
+        // Process login request
+        // =========================
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Login(
+            LoginViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+
+            // Find user by email
+            var user =
+                _userRepository.GetByEmail(model.Email);
+
+
+            // Check if the user exists
+            if (user == null)
+            {
+                ModelState.AddModelError(
+                    "",
+                    "Invalid email or password."
+                );
+
+                return View(model);
+            }
+
+
+            // Check if the account is active
+            if (!user.IsActive)
+            {
+                ModelState.AddModelError(
+                    "",
+                    "This account is inactive."
+                );
+
+                return View(model);
+            }
+
+
+            // Verify the entered password
+            var passwordHasher =
+                new PasswordHasher<User>();
+
+            var result =
+                passwordHasher.VerifyHashedPassword(
+                    user,
+                    user.PasswordHash,
+                    model.Password
+                );
+
+
+            if (result ==
+                PasswordVerificationResult.Failed)
+            {
+                ModelState.AddModelError(
+                    "",
+                    "Invalid email or password."
+                );
+
+                return View(model);
+            }
+
+
+            // Get the user's assigned role
+            var roleName =
+                user.RoleUsers
+                    .FirstOrDefault()?
+                    .Role?
+                    .Name ?? "User";
+
+
+            // Create user claims
+            var claims = new List<Claim>
+            {
+                new Claim(
+                    ClaimTypes.NameIdentifier,
+                    user.Id.ToString()
+                ),
+
+                new Claim(
+                    ClaimTypes.Name,
+                    user.FullName
+                ),
+
+                new Claim(
+                    ClaimTypes.Email,
+                    user.Email
+                ),
+
+                new Claim(
+                    ClaimTypes.Role,
+                    roleName
+                )
+            };
+
+
+            // Create the user's identity
+            var claimsIdentity =
+                new ClaimsIdentity(
+                    claims,
+                    CookieAuthenticationDefaults
+                        .AuthenticationScheme
+                );
+
+
+            // Configure authentication properties
+            var authenticationProperties =
+                new AuthenticationProperties
+                {
+                    IsPersistent = model.RememberMe
+                };
+
+
+            // Create the authentication cookie
+            await HttpContext.SignInAsync(
+                CookieAuthenticationDefaults
+                    .AuthenticationScheme,
+                new ClaimsPrincipal(claimsIdentity),
+                authenticationProperties
+            );
+
+
+            // Redirect to dashboard
+            return RedirectToAction(
+                "Index",
+                "Home"
+            );
+        }
+
+
+        // =========================
+        // LOGOUT
+        // =========================
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Logout()
+        {
+            await HttpContext.SignOutAsync(
+                CookieAuthenticationDefaults
+                    .AuthenticationScheme
+            );
+
+            return RedirectToAction(nameof(Login));
+        }
+    }
+}
+===== C:\Projects\AqarFlow\AqarFlow\Controllers\CustomerPropertyInterestsController.cs =====
+
+using AqarFlow.Application.Services.Base;
+using AqarFlow.DTOs;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
+
+using InterestModel = AqarFlow.Models.CustomerPropertyInterest;
+using DomainInterest = AqarFlow.Domain.Models.CustomerPropertyInterest;
+
+namespace AqarFlow.Controllers
+{
+    [Authorize]
+    public class CustomerPropertyInterestsController : Controller
+    {
+        private readonly ICustomerPropertyInterestService _interestService;
+        private readonly ICustomerService _customerService;
+        private readonly IPropertyService _propertyService;
+
+        public CustomerPropertyInterestsController(
+            ICustomerPropertyInterestService interestService,
+            ICustomerService customerService,
+            IPropertyService propertyService)
+        {
+            _interestService = interestService;
+            _customerService = customerService;
+            _propertyService = propertyService;
+        }
+
+        // =====================================
+        // INDEX
+        // =====================================
+
+        public IActionResult Index()
+        {
+            var customers = _customerService
+                .GetAllCustomers()
+                .ToDictionary(c => c.Id, c => c.Name);
+
+            var properties = _propertyService
+                .GetAll()
+                .ToDictionary(p => p.Id, p => p.Title);
+
+            var interests = _interestService
+                .GetAll()
+                .Select(i => new CustomerPropertyInterestDto
+                {
+                    Id = i.Id,
+
+                    CustomerName = customers.TryGetValue(
+                        i.CustomerId, out var customerName)
+                        ? customerName
+                        : "-",
+
+                    PropertyTitle = properties.TryGetValue(
+                        i.PropertyId, out var propertyTitle)
+                        ? propertyTitle
+                        : "-",
+
+                    Status = i.Status,
+                    Notes = i.Notes,
+                    CreatedAt = i.CreatedAt
+                })
+                .ToList();
+
+            return View(interests);
+        }
+
+        // =====================================
+        // CREATE - GET
+        // =====================================
+
+        [HttpGet]
+        public IActionResult Create()
+        {
+            LoadCustomers();
+            LoadProperties();
+
+            return View();
+        }
+
+        // =====================================
+        // CREATE - POST
+        // =====================================
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult Create(InterestModel interest)
+        {
+            if (ModelState.IsValid)
+            {
+                var domainInterest = ToDomainModel(interest);
+
+                domainInterest.CreatedAt = DateTime.Now;
+
+                _interestService.Add(domainInterest);
+
+                return RedirectToAction(nameof(Index));
+            }
+
+            LoadCustomers(interest.CustomerId);
+            LoadProperties(interest.PropertyId);
+
+            return View(interest);
+        }
+
+        // =====================================
+        // EDIT - GET
+        // =====================================
+
+        [HttpGet]
+        public IActionResult Edit(int? id)
+        {
+            if (id == null)
+                return NotFound();
+
+            var interest = _interestService.GetById(id.Value);
+
+            if (interest == null)
+                return NotFound();
+
+            LoadCustomers(interest.CustomerId);
+            LoadProperties(interest.PropertyId);
+
+            return View(ToViewModel(interest));
+        }
+
+        // =====================================
+        // EDIT - POST
+        // =====================================
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult Edit(int id, InterestModel interest)
+        {
+            if (id != interest.Id)
+                return NotFound();
+
+            if (ModelState.IsValid)
+            {
+                var existingInterest = _interestService.GetById(id);
+
+                if (existingInterest == null)
+                    return NotFound();
+
+                existingInterest.CustomerId = interest.CustomerId;
+                existingInterest.PropertyId = interest.PropertyId;
+                existingInterest.Status = interest.Status;
+                existingInterest.Notes = interest.Notes;
+
+                _interestService.Update(existingInterest);
+
+                return RedirectToAction(nameof(Index));
+            }
+
+            LoadCustomers(interest.CustomerId);
+            LoadProperties(interest.PropertyId);
+
+            return View(interest);
+        }
+
+        // =====================================
+        // DELETE - GET
+        // =====================================
+
+        [HttpGet]
+        public IActionResult Delete(int? id)
+        {
+            if (id == null)
+                return NotFound();
+
+            var interest = _interestService.GetById(id.Value);
+
+            if (interest == null)
+                return NotFound();
+
+            return View(ToViewModel(interest));
+        }
+
+        // =====================================
+        // DELETE - POST
+        // =====================================
+
+        [HttpPost, ActionName("Delete")]
+        [ValidateAntiForgeryToken]
+        public IActionResult DeleteConfirmed(int id)
+        {
+            var interest = _interestService.GetById(id);
+
+            if (interest != null)
+            {
+                _interestService.Delete(interest);
+            }
+
+            return RedirectToAction(nameof(Index));
+        }
+
+        // =====================================
+        // LOAD CUSTOMERS
+        // =====================================
+
+        private void LoadCustomers(int? selectedCustomerId = null)
+        {
+            var customers = _customerService
+                .GetAllCustomers()
+                .OrderBy(c => c.Name)
+                .ToList();
+
+            ViewBag.Customers = new SelectList(
+                customers,
+                "Id",
+                "Name",
+                selectedCustomerId
+            );
+        }
+
+        // =====================================
+        // LOAD PROPERTIES
+        // =====================================
+
+        private void LoadProperties(int? selectedPropertyId = null)
+        {
+            var properties = _propertyService
+                .GetAll()
+                .OrderBy(p => p.Title)
+                .ToList();
+
+            ViewBag.Properties = new SelectList(
+                properties,
+                "Id",
+                "Title",
+                selectedPropertyId
+            );
+        }
+
+        // =====================================
+        // MVC MODEL TO DOMAIN MODEL
+        // =====================================
+
+        private static DomainInterest ToDomainModel(InterestModel interest)
+        {
+            return new DomainInterest
+            {
+                Id = interest.Id,
+                CustomerId = interest.CustomerId,
+                PropertyId = interest.PropertyId,
+                Status = interest.Status,
+                Notes = interest.Notes,
+                CreatedAt = interest.CreatedAt
+            };
+        }
+
+        // =====================================
+        // DOMAIN MODEL TO MVC MODEL
+        // =====================================
+
+        private static InterestModel ToViewModel(DomainInterest interest)
+        {
+            return new InterestModel
+            {
+                Id = interest.Id,
+                CustomerId = interest.CustomerId,
+                PropertyId = interest.PropertyId,
+                Status = interest.Status,
+                Notes = interest.Notes,
+                CreatedAt = interest.CreatedAt
+            };
+        }
+    }
+}
+===== C:\Projects\AqarFlow\AqarFlow\Controllers\CustomersController.cs =====
+
+using AqarFlow.Application.Services.Base;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+
+using WebCustomer = AqarFlow.Models.Customer;
+using DomainCustomer = AqarFlow.Domain.Models.Customer;
+using WebCustomerDto = AqarFlow.DTOs.CustomerDto;
+
+namespace AqarFlow.Controllers
+{
+    [Authorize]
+    public class CustomersController : Controller
+    {
+        private readonly ICustomerService _customerService;
+
+        public CustomersController(ICustomerService customerService)
+        {
+            _customerService = customerService;
+        }
+
+        // =====================================
+        // INDEX
+        // =====================================
+
+        public IActionResult Index()
+        {
+            var customers = _customerService.GetAll()
+                .Select(c => new WebCustomerDto
+                {
+                    Id = c.Id,
+                    Name = c.Name,
+                    Phone = c.Phone,
+                    Purpose = c.Purpose,
+                    PropertyType = c.PropertyType,
+                    PreferredArea = c.PreferredArea,
+                    Status = c.Status,
+                    CreatedAt = c.CreatedAt
+                })
+                .ToList();
+
+            return View(customers);
+        }
+
+        // =====================================
+        // CREATE - GET
+        // =====================================
+
+        [HttpGet]
+        public IActionResult Create()
+        {
+            return View();
+        }
+
+        // =====================================
+        // CREATE - POST
+        // =====================================
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult Create(WebCustomer customer)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(customer);
+            }
+
+            var domainCustomer = ToDomainCustomer(customer);
+
+            _customerService.CreateCustomer(domainCustomer);
+
+            return RedirectToAction(nameof(Index));
+        }
+
+        // =====================================
+        // EDIT - GET
+        // =====================================
+
+        [HttpGet]
+        public IActionResult Edit(int id)
+        {
+            var customer = _customerService.GetCustomerById(id);
+
+            if (customer == null)
+            {
+                return NotFound();
+            }
+
+            return View(ToWebCustomer(customer));
+        }
+
+        // =====================================
+        // EDIT - POST
+        // =====================================
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult Edit(WebCustomer customer)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(customer);
+            }
+
+            var updated = _customerService.UpdateCustomer(
+                ToDomainCustomer(customer)
+            );
+
+            if (!updated)
+            {
+                return NotFound();
+            }
+
+            return RedirectToAction(nameof(Index));
+        }
+
+        // =====================================
+        // DELETE - GET
+        // =====================================
+
+        [HttpGet]
+        public IActionResult Delete(int id)
+        {
+            var customer = _customerService.GetCustomerById(id);
+
+            if (customer == null)
+            {
+                return NotFound();
+            }
+
+            return View(ToWebCustomer(customer));
+        }
+
+        // =====================================
+        // DELETE - POST
+        // =====================================
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult DeleteConfirmed(int id)
+        {
+            var deleted = _customerService.DeleteCustomer(id);
+
+            if (!deleted)
+            {
+                return NotFound();
+            }
+
+            return RedirectToAction(nameof(Index));
+        }
+
+        // =====================================
+        // DOMAIN TO MVC MODEL
+        // =====================================
+
+        private static WebCustomer ToWebCustomer(DomainCustomer customer)
+        {
+            return new WebCustomer
+            {
+                Id = customer.Id,
+                Name = customer.Name,
+                Phone = customer.Phone,
+                Email = customer.Email,
+                Purpose = customer.Purpose,
+                PropertyType = customer.PropertyType,
+                PreferredCity = customer.PreferredCity,
+                PreferredArea = customer.PreferredArea,
+                MinBudget = customer.MinBudget,
+                MaxBudget = customer.MaxBudget,
+                Bedrooms = customer.Bedrooms,
+                Status = customer.Status,
+                Source = customer.Source,
+                Notes = customer.Notes,
+                CreatedAt = customer.CreatedAt,
+                UpdatedAt = customer.UpdatedAt
+            };
+        }
+
+        // =====================================
+        // MVC MODEL TO DOMAIN
+        // =====================================
+
+        private static DomainCustomer ToDomainCustomer(WebCustomer customer)
+        {
+            return new DomainCustomer
+            {
+                Id = customer.Id,
+                Name = customer.Name,
+                Phone = customer.Phone,
+                Email = customer.Email,
+                Purpose = customer.Purpose,
+                PropertyType = customer.PropertyType,
+                PreferredCity = customer.PreferredCity,
+                PreferredArea = customer.PreferredArea,
+                MinBudget = customer.MinBudget,
+                MaxBudget = customer.MaxBudget,
+                Bedrooms = customer.Bedrooms,
+                Status = customer.Status,
+                Source = customer.Source,
+                Notes = customer.Notes,
+                CreatedAt = customer.CreatedAt,
+                UpdatedAt = customer.UpdatedAt
+            };
+        }
+    }
+}
+===== C:\Projects\AqarFlow\AqarFlow\Controllers\DealsController.cs =====
+
+using AqarFlow.Application.Services.Base;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
+
+using DealModel = AqarFlow.Models.Deal;
+using DomainDeal = AqarFlow.Domain.Models.Deal;
+using DealDto = AqarFlow.DTOs.DealDto;
+
+namespace AqarFlow.Controllers
+{
+    [Authorize]
+    public class DealsController : Controller
+    {
+        private readonly IDealService _dealService;
+        private readonly ICustomerService _customerService;
+        private readonly IPropertyService _propertyService;
+
+        public DealsController(
+            IDealService dealService,
+            ICustomerService customerService,
+            IPropertyService propertyService)
+        {
+            _dealService = dealService;
+            _customerService = customerService;
+            _propertyService = propertyService;
+        }
+
+        // =====================================
+        // INDEX
+        // =====================================
+
+        public IActionResult Index()
+        {
+            var customers = _customerService
+                .GetAllCustomers()
+                .ToDictionary(c => c.Id, c => c.Name);
+
+            var properties = _propertyService
+                .GetAll()
+                .ToDictionary(p => p.Id, p => p.Title);
+
+            var deals = _dealService
+                .GetAll()
+                .Select(d => new DealDto
+                {
+                    Id = d.Id,
+
+                    CustomerName = customers.TryGetValue(
+                        d.CustomerId, out var customerName)
+                        ? customerName
+                        : "-",
+
+                    PropertyTitle = properties.TryGetValue(
+                        d.PropertyId, out var propertyTitle)
+                        ? propertyTitle
+                        : "-",
+
+                    DealType = d.DealType,
+                    DealValue = d.DealValue,
+                    Commission = d.Commission,
+                    DealDate = d.DealDate,
+                    Status = d.Status
+                })
+                .ToList();
+
+            return View(deals);
+        }
+
+        // =====================================
+        // CREATE - GET
+        // =====================================
+
+        [HttpGet]
+        public IActionResult Create()
+        {
+            LoadCustomers();
+            LoadProperties();
+
+            return View();
+        }
+
+        // =====================================
+        // CREATE - POST
+        // =====================================
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult Create(DealModel deal)
+        {
+            if (ModelState.IsValid)
+            {
+                var domainDeal = ToDomainModel(deal);
+
+                domainDeal.CreatedAt = DateTime.Now;
+
+                _dealService.Add(domainDeal);
+
+                return RedirectToAction(nameof(Index));
+            }
+
+            LoadCustomers(deal.CustomerId);
+            LoadProperties(deal.PropertyId);
+
+            return View(deal);
+        }
+
+        // =====================================
+        // EDIT - GET
+        // =====================================
+
+        [HttpGet]
+        public IActionResult Edit(int? id)
+        {
+            if (id == null)
+                return NotFound();
+
+            var deal = _dealService.GetById(id.Value);
+
+            if (deal == null)
+                return NotFound();
+
+            LoadCustomers(deal.CustomerId);
+            LoadProperties(deal.PropertyId);
+
+            return View(ToViewModel(deal));
+        }
+
+        // =====================================
+        // EDIT - POST
+        // =====================================
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult Edit(int id, DealModel deal)
+        {
+            if (id != deal.Id)
+                return NotFound();
+
+            if (ModelState.IsValid)
+            {
+                var existingDeal = _dealService.GetById(id);
+
+                if (existingDeal == null)
+                    return NotFound();
+
+                existingDeal.CustomerId = deal.CustomerId;
+                existingDeal.PropertyId = deal.PropertyId;
+                existingDeal.DealType = deal.DealType;
+                existingDeal.DealValue = deal.DealValue;
+                existingDeal.Commission = deal.Commission;
+                existingDeal.Status = deal.Status;
+                existingDeal.DealDate = deal.DealDate;
+                existingDeal.Notes = deal.Notes;
+
+                _dealService.Update(existingDeal);
+
+                return RedirectToAction(nameof(Index));
+            }
+
+            LoadCustomers(deal.CustomerId);
+            LoadProperties(deal.PropertyId);
+
+            return View(deal);
+        }
+
+        // =====================================
+        // DELETE - GET
+        // =====================================
+
+        [HttpGet]
+        public IActionResult Delete(int? id)
+        {
+            if (id == null)
+                return NotFound();
+
+            var deal = _dealService.GetById(id.Value);
+
+            if (deal == null)
+                return NotFound();
+
+            return View(ToViewModel(deal));
+        }
+
+        // =====================================
+        // DELETE - POST
+        // =====================================
+
+        [HttpPost, ActionName("Delete")]
+        [ValidateAntiForgeryToken]
+        public IActionResult DeleteConfirmed(int id)
+        {
+            var deal = _dealService.GetById(id);
+
+            if (deal != null)
+            {
+                _dealService.Delete(deal);
+            }
+
+            return RedirectToAction(nameof(Index));
+        }
+
+        // =====================================
+        // LOAD CUSTOMERS
+        // =====================================
+
+        private void LoadCustomers(int? selectedCustomerId = null)
+        {
+            var customers = _customerService
+                .GetAllCustomers()
+                .OrderBy(c => c.Name)
+                .ToList();
+
+            ViewBag.Customers = new SelectList(
+                customers,
+                "Id",
+                "Name",
+                selectedCustomerId
+            );
+        }
+
+        // =====================================
+        // LOAD PROPERTIES
+        // =====================================
+
+        private void LoadProperties(int? selectedPropertyId = null)
+        {
+            var properties = _propertyService
+                .GetAll()
+                .OrderBy(p => p.Title)
+                .ToList();
+
+            ViewBag.Properties = new SelectList(
+                properties,
+                "Id",
+                "Title",
+                selectedPropertyId
+            );
+        }
+
+        // =====================================
+        // MVC MODEL TO DOMAIN MODEL
+        // =====================================
+
+        private static DomainDeal ToDomainModel(DealModel deal)
+        {
+            return new DomainDeal
+            {
+                Id = deal.Id,
+                CustomerId = deal.CustomerId,
+                PropertyId = deal.PropertyId,
+                DealType = deal.DealType,
+                DealValue = deal.DealValue,
+                Commission = deal.Commission,
+                Status = deal.Status,
+                DealDate = deal.DealDate,
+                Notes = deal.Notes,
+                CreatedAt = deal.CreatedAt
+            };
+        }
+
+        // =====================================
+        // DOMAIN MODEL TO MVC MODEL
+        // =====================================
+
+        private static DealModel ToViewModel(DomainDeal deal)
+        {
+            return new DealModel
+            {
+                Id = deal.Id,
+                CustomerId = deal.CustomerId,
+                PropertyId = deal.PropertyId,
+                DealType = deal.DealType,
+                DealValue = deal.DealValue,
+                Commission = deal.Commission,
+                Status = deal.Status,
+                DealDate = deal.DealDate,
+                Notes = deal.Notes,
+                CreatedAt = deal.CreatedAt
+            };
+        }
+    }
+}
+===== C:\Projects\AqarFlow\AqarFlow\Controllers\FollowUpsController.cs =====
+
+using AqarFlow.Application.Services.Base;
+using AqarFlow.DTOs;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
+
+using WebFollowUp = AqarFlow.Models.FollowUp;
+using WebCustomer = AqarFlow.Models.Customer;
+using DomainFollowUp = AqarFlow.Domain.Models.FollowUp;
+
+namespace AqarFlow.Controllers
+{
+    [Authorize]
+    public class FollowUpsController : Controller
+    {
+        private readonly IFollowUpService _followUpService;
+        private readonly ICustomerService _customerService;
+
+        public FollowUpsController(
+            IFollowUpService followUpService,
+            ICustomerService customerService)
+        {
+            _followUpService = followUpService;
+            _customerService = customerService;
+        }
+
+        // =====================================
+        // INDEX
+        // =====================================
+        public IActionResult Index()
+        {
+            var customers = _customerService.GetAll()
+                .ToDictionary(c => c.Id, c => c.Name);
+
+            var followUps = _followUpService.GetAll()
+                .Select(f => new FollowUpDto
+                {
+                    Id = f.Id,
+
+                    CustomerName = customers.TryGetValue(
+                        f.CustomerId,
+                        out var customerName)
+                        ? customerName
+                        : "Unknown",
+
+                    ContactDate = f.ContactDate,
+                    ContactMethod = f.ContactMethod,
+                    Result = f.Result,
+                    NextFollowUpDate = f.NextFollowUpDate,
+                    Status = f.Status
+                })
+                .ToList();
+
+            return View(followUps);
+        }
+
+        // =====================================
+        // CREATE - GET
+        // =====================================
+        [HttpGet]
+        public IActionResult Create()
+        {
+            LoadCustomers();
+
+            return View();
+        }
+
+        // =====================================
+        // CREATE - POST
+        // =====================================
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult Create(WebFollowUp followUp)
+        {
+            if (!ModelState.IsValid)
+            {
+                LoadCustomers(followUp.CustomerId);
+
+                return View(followUp);
+            }
+
+            var domainFollowUp = ToDomainFollowUp(followUp);
+
+            domainFollowUp.CreatedAt = DateTime.Now;
+
+            _followUpService.Add(domainFollowUp);
+
+            return RedirectToAction(nameof(Index));
+        }
+
+        // =====================================
+        // EDIT - GET
+        // =====================================
+        [HttpGet]
+        public IActionResult Edit(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var followUp = _followUpService.GetById(id.Value);
+
+            if (followUp == null)
+            {
+                return NotFound();
+            }
+
+            LoadCustomers(followUp.CustomerId);
+
+            return View(ToWebFollowUp(followUp));
+        }
+
+        // =====================================
+        // EDIT - POST
+        // =====================================
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult Edit(int id, WebFollowUp followUp)
+        {
+            if (id != followUp.Id)
+            {
+                return NotFound();
+            }
+
+            if (!ModelState.IsValid)
+            {
+                LoadCustomers(followUp.CustomerId);
+
+                return View(followUp);
+            }
+
+            var existingFollowUp = _followUpService.GetById(id);
+
+            if (existingFollowUp == null)
+            {
+                return NotFound();
+            }
+
+            existingFollowUp.CustomerId = followUp.CustomerId;
+            existingFollowUp.ContactDate = followUp.ContactDate;
+            existingFollowUp.ContactMethod = followUp.ContactMethod;
+            existingFollowUp.Result = followUp.Result;
+            existingFollowUp.NextFollowUpDate = followUp.NextFollowUpDate;
+            existingFollowUp.Status = followUp.Status;
+            existingFollowUp.Notes = followUp.Notes;
+
+            _followUpService.Update(existingFollowUp);
+
+            return RedirectToAction(nameof(Index));
+        }
+
+        // =====================================
+        // DELETE - GET
+        // =====================================
+        [HttpGet]
+        public IActionResult Delete(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var followUp = _followUpService.GetById(id.Value);
+
+            if (followUp == null)
+            {
+                return NotFound();
+            }
+
+            return View(ToWebFollowUp(followUp));
+        }
+
+        // =====================================
+        // DELETE - POST
+        // =====================================
+        [HttpPost, ActionName("Delete")]
+        [ValidateAntiForgeryToken]
+        public IActionResult DeleteConfirmed(int id)
+        {
+            var followUp = _followUpService.GetById(id);
+
+            if (followUp != null)
+            {
+                _followUpService.Delete(followUp);
+            }
+
+            return RedirectToAction(nameof(Index));
+        }
+
+        // =====================================
+        // LOAD CUSTOMERS
+        // =====================================
+        private void LoadCustomers(int? selectedCustomerId = null)
+        {
+            var customers = _customerService.GetAll()
+                .OrderBy(c => c.Name)
+                .ToList();
+
+            ViewBag.Customers = new SelectList(
+                customers,
+                "Id",
+                "Name",
+                selectedCustomerId
+            );
+        }
+
+        // =====================================
+        // DOMAIN TO MVC MODEL
+        // =====================================
+        private WebFollowUp ToWebFollowUp(
+            DomainFollowUp followUp)
+        {
+            var customer = _customerService.GetCustomerById(
+                followUp.CustomerId
+            );
+
+            return new WebFollowUp
+            {
+                Id = followUp.Id,
+                CustomerId = followUp.CustomerId,
+                ContactDate = followUp.ContactDate,
+                ContactMethod = followUp.ContactMethod,
+                Result = followUp.Result,
+                NextFollowUpDate = followUp.NextFollowUpDate,
+                Status = followUp.Status,
+                Notes = followUp.Notes,
+                CreatedAt = followUp.CreatedAt,
+
+                Customer = customer == null
+                    ? null
+                    : new WebCustomer
+                    {
+                        Id = customer.Id,
+                        Name = customer.Name
+                    }
+            };
+        }
+
+        // =====================================
+        // MVC MODEL TO DOMAIN
+        // =====================================
+        private static DomainFollowUp ToDomainFollowUp(
+            WebFollowUp followUp)
+        {
+            return new DomainFollowUp
+            {
+                Id = followUp.Id,
+                CustomerId = followUp.CustomerId,
+                ContactDate = followUp.ContactDate,
+                ContactMethod = followUp.ContactMethod,
+                Result = followUp.Result,
+                NextFollowUpDate = followUp.NextFollowUpDate,
+                Status = followUp.Status,
+                Notes = followUp.Notes,
+                CreatedAt = followUp.CreatedAt
+            };
+        }
+    }
+}
+===== C:\Projects\AqarFlow\AqarFlow\Controllers\HomeController.cs =====
+using AqarFlow.Models;
+using AqarFlow.Repositories;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using System.Diagnostics;
+
+namespace AqarFlow.Controllers
+{
+    // Only logged-in users can access this controller
+    [Authorize]
+    public class HomeController : Controller
+    {
+        private readonly ILogger<HomeController> _logger;
+        private readonly ICustomerRepository _customerRepository;
+        private readonly IPropertyRepository _propertyRepository;
+        private readonly IDealRepository _dealRepository;
+        private readonly IFollowUpRepository _followUpRepository;
+
+
+        public HomeController(
+            ILogger<HomeController> logger,
+            ICustomerRepository customerRepository,
+            IPropertyRepository propertyRepository,
+            IDealRepository dealRepository,
+            IFollowUpRepository followUpRepository)
+        {
+            _logger = logger;
+            _customerRepository = customerRepository;
+            _propertyRepository = propertyRepository;
+            _dealRepository = dealRepository;
+            _followUpRepository = followUpRepository;
+        }
+
+
+        // =========================
+        // DASHBOARD
+        // =========================
+        public IActionResult Index()
+        {
+            // Total customers
+            ViewBag.TotalCustomers =
+                _customerRepository.Count();
+
+
+            // Total properties
+            ViewBag.TotalProperties =
+                _propertyRepository.Count();
+
+
+            // Active deals
+            ViewBag.ActiveDeals =
+                _dealRepository.CountActive();
+
+
+            // Follow-ups scheduled for today
+            ViewBag.FollowUpsToday =
+                _followUpRepository.CountForDate(
+                    DateTime.Today
+                );
+
+
+            // Latest 5 customers
+            ViewBag.RecentCustomers =
+                _customerRepository.GetRecent(5);
+
+
+            // Customers by status
+            ViewBag.NewCustomers =
+                _customerRepository
+                    .CountByStatus("New");
+
+            ViewBag.InterestedCustomers =
+                _customerRepository
+                    .CountByStatus("Interested");
+
+            ViewBag.InProgressCustomers =
+                _customerRepository
+                    .CountByStatus("In Progress");
+
+            ViewBag.ClosedCustomers =
+                _customerRepository
+                    .CountByStatus("Closed");
+
+
+            // Upcoming follow-ups
+            ViewBag.UpcomingFollowUps =
+                _followUpRepository.GetUpcoming(5);
+
+
+            // =========================
+            // LEADS OVER TIME CHART
+            // =========================
+
+            int currentYear = DateTime.Now.Year;
+
+
+            // Month names
+            ViewBag.MonthLabels = new[]
+            {
+                "Jan",
+                "Feb",
+                "Mar",
+                "Apr",
+                "May",
+                "Jun",
+                "Jul",
+                "Aug",
+                "Sep",
+                "Oct",
+                "Nov",
+                "Dec"
+            };
+
+
+            // Customer count for each month
+            ViewBag.MonthValues =
+                _customerRepository
+                    .GetMonthlyCounts(currentYear);
+
+
+            ViewBag.ChartYear = currentYear;
+
+
+            return View();
+        }
+
+
+        // =========================
+        // PRIVACY
+        // =========================
+        public IActionResult Privacy()
+        {
+            return View();
+        }
+
+
+        // =========================
+        // ERROR
+        // =========================
+        [ResponseCache(
+            Duration = 0,
+            Location = ResponseCacheLocation.None,
+            NoStore = true)]
+        public IActionResult Error()
+        {
+            return View(new ErrorViewModel
+            {
+                RequestId =
+                    Activity.Current?.Id
+                    ?? HttpContext.TraceIdentifier
+            });
+        }
+    }
+}
+===== C:\Projects\AqarFlow\AqarFlow\Controllers\LanguageController.cs =====
+using Microsoft.AspNetCore.Localization;
+using Microsoft.AspNetCore.Mvc;
+
+namespace AqarFlow.Controllers
+{
+    public class LanguageController : Controller
+    {
+        [HttpGet]
+        public IActionResult SetLanguage(
+            string culture,
+            string returnUrl)
+        {
+            // Save selected language in a cookie
+            Response.Cookies.Append(
+                CookieRequestCultureProvider.DefaultCookieName,
+                CookieRequestCultureProvider.MakeCookieValue(
+                    new RequestCulture(culture)
+                ),
+                new CookieOptions
+                {
+                    Expires = DateTimeOffset.UtcNow.AddYears(1),
+                    IsEssential = true
+                }
+            );
+
+            // Return user to the same page
+            if (!string.IsNullOrEmpty(returnUrl) &&
+                Url.IsLocalUrl(returnUrl))
+            {
+                return LocalRedirect(returnUrl);
+            }
+
+            return RedirectToAction(
+                "Index",
+                "Home"
+            );
+        }
+    }
+}
+===== C:\Projects\AqarFlow\AqarFlow\Controllers\PermissionsController.cs =====
+
+using AqarFlow.Models;
+using AqarFlow.Repositories;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+
+namespace AqarFlow.Controllers
+{
+    // =====================================
+    // PERMISSIONS CONTROLLER
+    // =====================================
+
+    // Only Admin users can manage permissions
+    [Authorize(Roles = "Admin")]
+    public class PermissionsController : Controller
+    {
+        private readonly IPermissionRepository _permissionRepository;
+
+        public PermissionsController(
+            IPermissionRepository permissionRepository)
+        {
+            _permissionRepository = permissionRepository;
+        }
+
+        // =====================================
+        // INDEX
+        // Display all permissions
+        // =====================================
+
+        [HttpGet]
+        public IActionResult Index()
+        {
+            var permissions = _permissionRepository.GetAll();
+
+            return View(permissions);
+        }
+
+        // =====================================
+        // CREATE - POST
+        // Add a new permission
+        // =====================================
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult Create(Permission permission)
+        {
+            if (ModelState.IsValid)
+            {
+                _permissionRepository.Add(permission);
+                _permissionRepository.Save();
+            }
+
+            return RedirectToAction(nameof(Index));
+        }
+
+        // =====================================
+        // EDIT - POST
+        // Update an existing permission
+        // =====================================
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult Edit(Permission permission)
+        {
+            if (ModelState.IsValid)
+            {
+                _permissionRepository.Update(permission);
+                _permissionRepository.Save();
+            }
+
+            return RedirectToAction(nameof(Index));
+        }
+
+        // =====================================
+        // DELETE - POST
+        // Delete an existing permission
+        // =====================================
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult Delete(int id)
+        {
+            var permission = _permissionRepository.GetById(id);
+
+            if (permission == null)
+            {
+                return NotFound();
+            }
+
+            _permissionRepository.Delete(permission);
+            _permissionRepository.Save();
+
+            return RedirectToAction(nameof(Index));
+        }
+    }
+}
+===== C:\Projects\AqarFlow\AqarFlow\Controllers\PropertiesController.cs =====
+using AqarFlow.Models;
+using AqarFlow.Repositories;
+using AqarFlow.ViewModels;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+
+namespace AqarFlow.Controllers
+{
+    // Only logged-in users can access Properties
+    [Authorize]
+    public class PropertiesController : Controller
+    {
+        private readonly IPropertyRepository _propertyRepository;
+        private readonly IWebHostEnvironment _webHostEnvironment;
+
+        public PropertiesController(
+            IPropertyRepository propertyRepository,
+            IWebHostEnvironment webHostEnvironment)
+        {
+            _propertyRepository = propertyRepository;
+            _webHostEnvironment = webHostEnvironment;
+        }
+
+
+        // =========================
+        // INDEX
+        // Display all properties
+        // =========================
+        public IActionResult Index()
+        {
+            var properties = _propertyRepository.GetAll();
+
+            return View(properties);
+        }
+
+
+        // =========================
+        // CREATE - GET
+        // =========================
+        [HttpGet]
+        public IActionResult Create()
+        {
+            return View();
+        }
+
+
+        // =========================
+        // CREATE - POST
+        // Add new property with image
+        // =========================
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Create(
+            PropertyCreateViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            string? imagePath = null;
+
+            if (model.ImageFile != null &&
+                model.ImageFile.Length > 0)
+            {
+                imagePath = await SaveImage(model.ImageFile);
+            }
+
+            var property = new Property
+            {
+                Title = model.Title,
+                PropertyType = model.PropertyType,
+                City = model.City,
+                Area = model.Area,
+                Price = model.Price,
+                Bedrooms = model.Bedrooms,
+                Bathrooms = model.Bathrooms,
+                PropertySize = model.PropertySize,
+                Status = model.Status,
+                Description = model.Description,
+                ImagePath = imagePath,
+                CreatedAt = DateTime.Now
+            };
+
+            _propertyRepository.Add(property);
+            _propertyRepository.Save();
+
+            return RedirectToAction(nameof(Index));
+        }
+
+
+        // =========================
+        // DETAILS
+        // =========================
+        public IActionResult Details(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var property = _propertyRepository.GetById(id.Value);
+
+            if (property == null)
+            {
+                return NotFound();
+            }
+
+            return View(property);
+        }
+
+
+        // =========================
+        // EDIT - GET
+        // =========================
+        [HttpGet]
+        public IActionResult Edit(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var property = _propertyRepository.GetById(id.Value);
+
+            if (property == null)
+            {
+                return NotFound();
+            }
+
+            var model = new PropertyEditViewModel
+            {
+                Id = property.Id,
+                Title = property.Title,
+                PropertyType = property.PropertyType,
+                City = property.City,
+                Area = property.Area,
+                Price = property.Price,
+                Bedrooms = property.Bedrooms,
+                Bathrooms = property.Bathrooms,
+                PropertySize = property.PropertySize,
+                Status = property.Status,
+                Description = property.Description,
+                CurrentImagePath = property.ImagePath
+            };
+
+            return View(model);
+        }
+
+
+        // =========================
+        // EDIT - POST
+        // Update property and optionally replace image
+        // =========================
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(
+            int id,
+            PropertyEditViewModel model)
+        {
+            if (id != model.Id)
+            {
+                return NotFound();
+            }
+
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            var existingProperty =
+                _propertyRepository.GetById(id);
+
+            if (existingProperty == null)
+            {
+                return NotFound();
+            }
+
+            existingProperty.Title = model.Title;
+            existingProperty.PropertyType = model.PropertyType;
+            existingProperty.City = model.City;
+            existingProperty.Area = model.Area;
+            existingProperty.Price = model.Price;
+            existingProperty.Bedrooms = model.Bedrooms;
+            existingProperty.Bathrooms = model.Bathrooms;
+            existingProperty.PropertySize = model.PropertySize;
+            existingProperty.Status = model.Status;
+            existingProperty.Description = model.Description;
+            existingProperty.UpdatedAt = DateTime.Now;
+
+            // Replace image if a new image was uploaded
+            if (model.ImageFile != null &&
+                model.ImageFile.Length > 0)
+            {
+                DeleteImage(existingProperty.ImagePath);
+
+                existingProperty.ImagePath =
+                    await SaveImage(model.ImageFile);
+            }
+
+            _propertyRepository.Update(existingProperty);
+            _propertyRepository.Save();
+
+            return RedirectToAction(nameof(Index));
+        }
+
+
+        // =========================
+        // DELETE - GET
+        // =========================
+        [HttpGet]
+        public IActionResult Delete(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var property = _propertyRepository.GetById(id.Value);
+
+            if (property == null)
+            {
+                return NotFound();
+            }
+
+            return View(property);
+        }
+
+
+        // =========================
+        // DELETE - POST
+        // Delete property and its image
+        // =========================
+        [HttpPost, ActionName("Delete")]
+        [ValidateAntiForgeryToken]
+        public IActionResult DeleteConfirmed(int id)
+        {
+            var property =
+                _propertyRepository.GetById(id);
+
+            if (property != null)
+            {
+                DeleteImage(property.ImagePath);
+
+                _propertyRepository.Delete(property);
+                _propertyRepository.Save();
+            }
+
+            return RedirectToAction(nameof(Index));
+        }
+
+
+        // =========================
+        // SAVE IMAGE
+        // =========================
+        private async Task<string> SaveImage(
+            IFormFile imageFile)
+        {
+            var uploadsFolder = Path.Combine(
+                _webHostEnvironment.WebRootPath,
+                "uploads",
+                "properties"
+            );
+
+            Directory.CreateDirectory(uploadsFolder);
+
+            var extension =
+                Path.GetExtension(imageFile.FileName);
+
+            var uniqueFileName =
+                $"{Guid.NewGuid()}{extension}";
+
+            var filePath = Path.Combine(
+                uploadsFolder,
+                uniqueFileName
+            );
+
+            using (var fileStream =
+                   new FileStream(
+                       filePath,
+                       FileMode.Create))
+            {
+                await imageFile.CopyToAsync(fileStream);
+            }
+
+            return $"/uploads/properties/{uniqueFileName}";
+        }
+
+
+        // =========================
+        // DELETE IMAGE
+        // =========================
+        private void DeleteImage(
+            string? imagePath)
+        {
+            if (string.IsNullOrEmpty(imagePath))
+            {
+                return;
+            }
+
+            var relativePath =
+                imagePath
+                    .TrimStart('/')
+                    .Replace(
+                        '/',
+                        Path.DirectorySeparatorChar
+                    );
+
+            var fullImagePath =
+                Path.Combine(
+                    _webHostEnvironment.WebRootPath,
+                    relativePath
+                );
+
+            if (System.IO.File.Exists(fullImagePath))
+            {
+                System.IO.File.Delete(fullImagePath);
+            }
+        }
+    }
+}
+===== C:\Projects\AqarFlow\AqarFlow\Controllers\RolesController.cs =====
+
+using AqarFlow.Models;
+using AqarFlow.Repositories;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+
+namespace AqarFlow.Controllers
+{
+    [Authorize(Roles = "Admin")]
+    public class RolesController : Controller
+    {
+        private readonly IRoleRepository _roleRepository;
+        private readonly IPermissionRepository _permissionRepository;
+        private readonly IPermissionRoleRepository _permissionRoleRepository;
+
+        public RolesController(
+            IRoleRepository roleRepository,
+            IPermissionRepository permissionRepository,
+            IPermissionRoleRepository permissionRoleRepository)
+        {
+            _roleRepository = roleRepository;
+            _permissionRepository = permissionRepository;
+            _permissionRoleRepository = permissionRoleRepository;
+        }
+
+        // =====================================
+        // INDEX
+        // =====================================
+
+        [HttpGet]
+        public IActionResult Index()
+        {
+            var roles = _roleRepository.GetAll();
+
+            return View(roles);
+        }
+
+        // =====================================
+        // CREATE - POST
+        // =====================================
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult Create(Role role)
+        {
+            if (ModelState.IsValid)
+            {
+                _roleRepository.Add(role);
+                _roleRepository.Save();
+            }
+
+            return RedirectToAction(nameof(Index));
+        }
+
+        // =====================================
+        // EDIT - POST
+        // =====================================
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult Edit(Role role)
+        {
+            if (ModelState.IsValid)
+            {
+                var existingRole = _roleRepository.GetById(role.Id);
+
+                if (existingRole == null)
+                    return NotFound();
+
+                existingRole.Name = role.Name;
+
+                _roleRepository.Update(existingRole);
+                _roleRepository.Save();
+            }
+
+            return RedirectToAction(nameof(Index));
+        }
+
+        // =====================================
+        // DELETE - POST
+        // =====================================
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult Delete(int id)
+        {
+            var role = _roleRepository.GetById(id);
+
+            if (role == null)
+                return NotFound();
+
+            _roleRepository.Delete(role);
+            _roleRepository.Save();
+
+            return RedirectToAction(nameof(Index));
+        }
+
+        // =====================================
+        // ASSIGN PERMISSIONS - GET
+        // =====================================
+
+        [HttpGet]
+        public IActionResult AssignPermissions(int roleId)
+        {
+            var role = _roleRepository.GetById(roleId);
+
+            if (role == null)
+                return NotFound();
+
+            var allPermissions = _permissionRepository.GetAll();
+
+            var assignedPermissionIds = _permissionRoleRepository
+                .GetPermissionIdsByRoleId(roleId);
+
+            ViewBag.Role = role;
+            ViewBag.AllPermissions = allPermissions;
+            ViewBag.AssignedPermissionIds = assignedPermissionIds;
+
+            return View();
+        }
+
+        // =====================================
+        // ASSIGN PERMISSIONS - POST
+        // =====================================
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult AssignPermissions(
+            int roleId,
+            List<int> permissionIds)
+        {
+            var role = _roleRepository.GetById(roleId);
+
+            if (role == null)
+                return NotFound();
+
+            _permissionRoleRepository.DeleteByRoleId(roleId);
+
+            foreach (var permissionId in permissionIds ?? new List<int>())
+            {
+                var permissionRole = new PermissionRole
+                {
+                    RoleId = roleId,
+                    PermissionId = permissionId
+                };
+
+                _permissionRoleRepository.Add(permissionRole);
+            }
+
+            _permissionRoleRepository.Save();
+
+            return RedirectToAction(
+                nameof(AssignPermissions),
+                new { roleId });
+        }
+    }
+}
+===== C:\Projects\AqarFlow\AqarFlow\Controllers\UsersController.cs =====
+
+using AqarFlow.Models;
+using AqarFlow.Repositories;
+using AqarFlow.ViewModels;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
+
+namespace AqarFlow.Controllers
+{
+    [Authorize(Roles = "Admin")]
+    public class UsersController : Controller
+    {
+        private readonly IUserRepository _userRepository;
+        private readonly IRoleRepository _roleRepository;
+        private readonly IRoleUserRepository _roleUserRepository;
+
+        public UsersController(
+            IUserRepository userRepository,
+            IRoleRepository roleRepository,
+            IRoleUserRepository roleUserRepository)
+        {
+            _userRepository = userRepository;
+            _roleRepository = roleRepository;
+            _roleUserRepository = roleUserRepository;
+        }
+
+        // INDEX
+        [HttpGet]
+        public IActionResult Index()
+        {
+            var users = _userRepository.GetAll();
+            return View(users);
+        }
+
+        // CREATE - GET
+        [HttpGet]
+        public IActionResult Create()
+        {
+            ViewBag.Roles = _roleRepository.GetAll();
+            return View();
+        }
+
+        // CREATE - POST
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult Create(UserCreateViewModel model)
+        {
+            if (model.RoleId.HasValue &&
+                _roleRepository.GetById(model.RoleId.Value) == null)
+            {
+                ModelState.AddModelError(
+                    nameof(model.RoleId),
+                    "Selected role does not exist.");
+            }
+
+            if (!ModelState.IsValid)
+            {
+                ViewBag.Roles = _roleRepository.GetAll();
+                return View(model);
+            }
+
+            var user = new User
+            {
+                FullName = model.FullName,
+                Email = model.Email,
+                IsActive = model.IsActive,
+                CreatedAt = DateTime.Now
+            };
+
+            var passwordHasher = new PasswordHasher<User>();
+
+            user.PasswordHash = passwordHasher.HashPassword(
+                user,
+                model.Password);
+
+            _userRepository.Add(user);
+            _userRepository.Save();
+
+            if (model.RoleId.HasValue)
+            {
+                _roleUserRepository.Add(new RoleUser
+                {
+                    UserId = user.Id,
+                    RoleId = model.RoleId.Value
+                });
+
+                _roleUserRepository.Save();
+            }
+
+            return RedirectToAction(nameof(Index));
+        }
+
+        // EDIT - GET
+        [HttpGet]
+        public IActionResult Edit(int? id)
+        {
+            if (!id.HasValue)
+                return NotFound();
+
+            var user = _userRepository.GetById(id.Value);
+
+            if (user == null)
+                return NotFound();
+
+            var model = new UserEditViewModel
+            {
+                Id = user.Id,
+                FullName = user.FullName,
+                Email = user.Email,
+                IsActive = user.IsActive,
+                RoleId = user.RoleUsers.FirstOrDefault()?.RoleId
+            };
+
+            ViewBag.Roles = _roleRepository.GetAll();
+
+            return View(model);
+        }
+
+        // EDIT - POST
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult Edit(
+            int id,
+            UserEditViewModel model)
+        {
+            if (id != model.Id)
+                return NotFound();
+
+            var existingUser = _userRepository.GetById(id);
+
+            if (existingUser == null)
+                return NotFound();
+
+            if (model.RoleId.HasValue &&
+                _roleRepository.GetById(model.RoleId.Value) == null)
+            {
+                ModelState.AddModelError(
+                    nameof(model.RoleId),
+                    "Selected role does not exist.");
+            }
+
+            if (!ModelState.IsValid)
+            {
+                ViewBag.Roles = _roleRepository.GetAll();
+                return View(model);
+            }
+
+            // Update only editable fields.
+            // PasswordHash remains unchanged.
+            existingUser.FullName = model.FullName;
+            existingUser.Email = model.Email;
+            existingUser.IsActive = model.IsActive;
+
+            var currentRoleId = existingUser.RoleUsers
+                .FirstOrDefault()?.RoleId;
+
+            if (currentRoleId != model.RoleId)
+            {
+                _roleUserRepository.DeleteByUserId(existingUser.Id);
+
+                if (model.RoleId.HasValue)
+                {
+                    _roleUserRepository.Add(new RoleUser
+                    {
+                        UserId = existingUser.Id,
+                        RoleId = model.RoleId.Value
+                    });
+                }
+            }
+
+            _userRepository.Update(existingUser);
+            _userRepository.Save();
+            _roleUserRepository.Save();
+
+            return RedirectToAction(nameof(Index));
+        }
+
+        // DELETE - GET
+        [HttpGet]
+        public IActionResult Delete(int? id)
+        {
+            if (!id.HasValue)
+                return NotFound();
+
+            var user = _userRepository.GetById(id.Value);
+
+            if (user == null)
+                return NotFound();
+
+            return View(user);
+        }
+
+        // DELETE - POST
+        [HttpPost, ActionName("Delete")]
+        [ValidateAntiForgeryToken]
+        public IActionResult DeleteConfirmed(int id)
+        {
+            var user = _userRepository.GetById(id);
+
+            if (user == null)
+                return NotFound();
+
+            _roleUserRepository.DeleteByUserId(user.Id);
+            _roleUserRepository.Save();
+
+            _userRepository.Delete(user);
+            _userRepository.Save();
+
+            return RedirectToAction(nameof(Index));
+        }
+    }
+}

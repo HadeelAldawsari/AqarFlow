@@ -1,11 +1,10 @@
-﻿
-@using AqarFlow.Models
+﻿@using AqarFlow.Domain.Models
 
 @{
     ViewData["Title"] = "Assign Permissions";
 
-    var role = ViewBag.Role as Role;
-    var allPermissions = ViewBag.AllPermissions as List<Permission>;
+    var role = ViewBag.Role as AqarFlow.Domain.Models.Role;
+    var allPermissions = ViewBag.AllPermissions as List<AqarFlow.Domain.Models.Permission>;
     var assignedPermissionIds = ViewBag.AssignedPermissionIds as List<int>;
 }
 

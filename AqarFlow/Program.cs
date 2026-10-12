@@ -1,6 +1,4 @@
 
-using AqarFlow.Data;
-using AqarFlow.Repositories;
 using AqarFlow.Application.Interfaces.Base;
 using AqarFlow.Application.Services;
 using AqarFlow.Application.Services.Base;
@@ -10,7 +8,7 @@ using Microsoft.AspNetCore.Localization;
 using Microsoft.EntityFrameworkCore;
 using System.Globalization;
 
-// Alias for the Infrastructure DbContext
+// Infrastructure DbContext
 using InfrastructureDbContext = AqarFlow.Infrastructure.Data.AppDbContext;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -32,22 +30,8 @@ builder.Services.AddLocalization(options =>
 
 
 // =====================================
-// DATABASE - ORIGINAL
+// DATABASE - INFRASTRUCTURE ONLY
 // =====================================
-
-// Keep the original DbContext temporarily
-// because some controllers still use it.
-
-builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlServer(
-        builder.Configuration.GetConnectionString("DefaultDatabase")));
-
-
-// =====================================
-// DATABASE - INFRASTRUCTURE
-// =====================================
-
-// Infrastructure DbContext for Clean Architecture
 
 builder.Services.AddDbContext<InfrastructureDbContext>(options =>
     options.UseSqlServer(
@@ -55,32 +39,58 @@ builder.Services.AddDbContext<InfrastructureDbContext>(options =>
 
 
 // =====================================
-// EXISTING REPOSITORIES
+// REPOSITORIES
 // =====================================
 
-builder.Services.AddScoped<ICustomerRepository, CustomerRepository>();
-
-builder.Services.AddScoped<IPropertyRepository, PropertyRepository>();
-
-builder.Services.AddScoped<IFollowUpRepository, FollowUpRepository>();
-
-builder.Services.AddScoped<IDealRepository, DealRepository>();
-
+// Customer
 builder.Services.AddScoped<
-    ICustomerPropertyInterestRepository,
-    CustomerPropertyInterestRepository>();
+    AqarFlow.Application.Interfaces.ICustomerRepository,
+    AqarFlow.Infrastructure.Repositories.CustomerRepository>();
 
-builder.Services.AddScoped<IUserRepository, UserRepository>();
-
-builder.Services.AddScoped<IRoleRepository, RoleRepository>();
-
-builder.Services.AddScoped<IRoleUserRepository, RoleUserRepository>();
-
-builder.Services.AddScoped<IPermissionRepository, PermissionRepository>();
-
+// Property
 builder.Services.AddScoped<
-    IPermissionRoleRepository,
-    PermissionRoleRepository>();
+    AqarFlow.Application.Interfaces.IPropertyRepository,
+    AqarFlow.Infrastructure.Repositories.PropertyRepository>();
+
+// Follow-up
+builder.Services.AddScoped<
+    AqarFlow.Application.Interfaces.IFollowUpRepository,
+    AqarFlow.Infrastructure.Repositories.FollowUpRepository>();
+
+// Deal
+builder.Services.AddScoped<
+    AqarFlow.Application.Interfaces.IDealRepository,
+    AqarFlow.Infrastructure.Repositories.DealRepository>();
+
+// Customer Property Interest
+builder.Services.AddScoped<
+    AqarFlow.Application.Interfaces.ICustomerPropertyInterestRepository,
+    AqarFlow.Infrastructure.Repositories.CustomerPropertyInterestRepository>();
+
+// User
+builder.Services.AddScoped<
+    AqarFlow.Application.Interfaces.IUserRepository,
+    AqarFlow.Infrastructure.Repositories.UserRepository>();
+
+// Role
+builder.Services.AddScoped<
+    AqarFlow.Application.Interfaces.IRoleRepository,
+    AqarFlow.Infrastructure.Repositories.RoleRepository>();
+
+// Role User
+builder.Services.AddScoped<
+    AqarFlow.Application.Interfaces.IRoleUserRepository,
+    AqarFlow.Infrastructure.Repositories.RoleUserRepository>();
+
+// Permission
+builder.Services.AddScoped<
+    AqarFlow.Application.Interfaces.IPermissionRepository,
+    AqarFlow.Infrastructure.Repositories.PermissionRepository>();
+
+// Permission Role
+builder.Services.AddScoped<
+    AqarFlow.Application.Interfaces.IPermissionRoleRepository,
+    AqarFlow.Infrastructure.Repositories.PermissionRoleRepository>();
 
 
 // =====================================
@@ -94,19 +104,14 @@ builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 // APPLICATION SERVICES
 // =====================================
 
-// Customer Service
 builder.Services.AddScoped<ICustomerService, CustomerService>();
 
-// Property Service
 builder.Services.AddScoped<IPropertyService, PropertyService>();
 
-// Follow-up Service
 builder.Services.AddScoped<IFollowUpService, FollowUpService>();
 
-// Deal Service
 builder.Services.AddScoped<IDealService, DealService>();
 
-// Customer Property Interest Service
 builder.Services.AddScoped<
     ICustomerPropertyInterestService,
     CustomerPropertyInterestService>();
@@ -141,9 +146,6 @@ builder.Services
 // =====================================
 // AUTHORIZATION
 // =====================================
-
-// Enable authorization services.
-// Permission-based policies can be added here later.
 
 builder.Services.AddAuthorization();
 
@@ -198,7 +200,6 @@ app.UseRequestLocalization(localizationOptions);
 
 app.UseRouting();
 
-// Authentication must run before Authorization.
 app.UseAuthentication();
 
 app.UseAuthorization();

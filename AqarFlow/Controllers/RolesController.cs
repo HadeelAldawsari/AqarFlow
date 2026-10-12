@@ -1,6 +1,6 @@
 ﻿
-using AqarFlow.Models;
-using AqarFlow.Repositories;
+using AqarFlow.Application.Interfaces;
+using AqarFlow.Domain.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -23,22 +23,15 @@ namespace AqarFlow.Controllers
             _permissionRoleRepository = permissionRoleRepository;
         }
 
-        // =====================================
         // INDEX
-        // =====================================
-
         [HttpGet]
         public IActionResult Index()
         {
             var roles = _roleRepository.GetAll();
-
             return View(roles);
         }
 
-        // =====================================
-        // CREATE - POST
-        // =====================================
-
+        // CREATE
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult Create(Role role)
@@ -52,10 +45,7 @@ namespace AqarFlow.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        // =====================================
-        // EDIT - POST
-        // =====================================
-
+        // EDIT
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult Edit(Role role)
@@ -76,10 +66,7 @@ namespace AqarFlow.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        // =====================================
-        // DELETE - POST
-        // =====================================
-
+        // DELETE
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult Delete(int id)
@@ -95,10 +82,7 @@ namespace AqarFlow.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        // =====================================
         // ASSIGN PERMISSIONS - GET
-        // =====================================
-
         [HttpGet]
         public IActionResult AssignPermissions(int roleId)
         {
@@ -119,10 +103,7 @@ namespace AqarFlow.Controllers
             return View();
         }
 
-        // =====================================
         // ASSIGN PERMISSIONS - POST
-        // =====================================
-
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult AssignPermissions(

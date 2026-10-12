@@ -1,12 +1,12 @@
 ﻿
 using AqarFlow.Application.Services.Base;
-using AqarFlow.DTOs;
+using AqarFlow.Application.DTOs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 
-using WebFollowUp = AqarFlow.Models.FollowUp;
-using WebCustomer = AqarFlow.Models.Customer;
+using WebFollowUp = AqarFlow.Domain.Models.FollowUp;
+using WebCustomer = AqarFlow.Domain.Models.Customer;
 using DomainFollowUp = AqarFlow.Domain.Models.FollowUp;
 
 namespace AqarFlow.Controllers

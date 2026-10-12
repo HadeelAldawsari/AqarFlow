@@ -1,6 +1,6 @@
 ﻿
-using AqarFlow.Models;
-using AqarFlow.Repositories;
+using AqarFlow.Application.Interfaces;
+using AqarFlow.Domain.Models;
 using AqarFlow.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -146,12 +146,12 @@ namespace AqarFlow.Controllers
                 return View(model);
             }
 
-            // Update only editable fields.
-            // PasswordHash remains unchanged.
+            // Update user information
             existingUser.FullName = model.FullName;
             existingUser.Email = model.Email;
             existingUser.IsActive = model.IsActive;
 
+            // Update assigned role if changed
             var currentRoleId = existingUser.RoleUsers
                 .FirstOrDefault()?.RoleId;
 

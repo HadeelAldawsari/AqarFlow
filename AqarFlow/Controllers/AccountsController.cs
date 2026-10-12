@@ -1,5 +1,6 @@
-﻿using AqarFlow.Models;
-using AqarFlow.Repositories;
+﻿
+using AqarFlow.Application.Interfaces;
+using AqarFlow.Domain.Models;
 using AqarFlow.ViewModels;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -13,45 +14,31 @@ namespace AqarFlow.Controllers
     {
         private readonly IUserRepository _userRepository;
 
-        public AccountsController(
-            IUserRepository userRepository)
+        public AccountsController(IUserRepository userRepository)
         {
             _userRepository = userRepository;
         }
 
-
-        // =========================
         // LOGIN - GET
-        // Display login page
-        // =========================
         [HttpGet]
         public IActionResult Login()
         {
             return View();
         }
 
-
-        // =========================
         // LOGIN - POST
-        // Process login request
-        // =========================
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Login(
-            LoginViewModel model)
+        public async Task<IActionResult> Login(LoginViewModel model)
         {
             if (!ModelState.IsValid)
             {
                 return View(model);
             }
 
-
             // Find user by email
-            var user =
-                _userRepository.GetByEmail(model.Email);
+            var user = _userRepository.GetByEmail(model.Email);
 
-
-            // Check if the user exists
             if (user == null)
             {
                 ModelState.AddModelError(
@@ -62,8 +49,7 @@ namespace AqarFlow.Controllers
                 return View(model);
             }
 
-
-            // Check if the account is active
+            // Check if account is active
             if (!user.IsActive)
             {
                 ModelState.AddModelError(
@@ -74,21 +60,16 @@ namespace AqarFlow.Controllers
                 return View(model);
             }
 
+            // Verify password
+            var passwordHasher = new PasswordHasher<User>();
 
-            // Verify the entered password
-            var passwordHasher =
-                new PasswordHasher<User>();
+            var result = passwordHasher.VerifyHashedPassword(
+                user,
+                user.PasswordHash,
+                model.Password
+            );
 
-            var result =
-                passwordHasher.VerifyHashedPassword(
-                    user,
-                    user.PasswordHash,
-                    model.Password
-                );
-
-
-            if (result ==
-                PasswordVerificationResult.Failed)
+            if (result == PasswordVerificationResult.Failed)
             {
                 ModelState.AddModelError(
                     "",
@@ -98,16 +79,13 @@ namespace AqarFlow.Controllers
                 return View(model);
             }
 
+            // Get user role
+            var roleName = user.RoleUsers
+                .FirstOrDefault()?
+                .Role?
+                .Name ?? "User";
 
-            // Get the user's assigned role
-            var roleName =
-                user.RoleUsers
-                    .FirstOrDefault()?
-                    .Role?
-                    .Name ?? "User";
-
-
-            // Create user claims
+            // Create claims
             var claims = new List<Claim>
             {
                 new Claim(
@@ -131,51 +109,34 @@ namespace AqarFlow.Controllers
                 )
             };
 
+            var claimsIdentity = new ClaimsIdentity(
+                claims,
+                CookieAuthenticationDefaults.AuthenticationScheme
+            );
 
-            // Create the user's identity
-            var claimsIdentity =
-                new ClaimsIdentity(
-                    claims,
-                    CookieAuthenticationDefaults
-                        .AuthenticationScheme
-                );
-
-
-            // Configure authentication properties
             var authenticationProperties =
                 new AuthenticationProperties
                 {
                     IsPersistent = model.RememberMe
                 };
 
-
-            // Create the authentication cookie
+            // Sign in
             await HttpContext.SignInAsync(
-                CookieAuthenticationDefaults
-                    .AuthenticationScheme,
+                CookieAuthenticationDefaults.AuthenticationScheme,
                 new ClaimsPrincipal(claimsIdentity),
                 authenticationProperties
             );
 
-
-            // Redirect to dashboard
-            return RedirectToAction(
-                "Index",
-                "Home"
-            );
+            return RedirectToAction("Index", "Home");
         }
 
-
-        // =========================
         // LOGOUT
-        // =========================
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Logout()
         {
             await HttpContext.SignOutAsync(
-                CookieAuthenticationDefaults
-                    .AuthenticationScheme
+                CookieAuthenticationDefaults.AuthenticationScheme
             );
 
             return RedirectToAction(nameof(Login));

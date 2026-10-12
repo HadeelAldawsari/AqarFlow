@@ -1,12 +1,12 @@
+
 using AqarFlow.Models;
-using AqarFlow.Repositories;
+using AqarFlow.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
 
 namespace AqarFlow.Controllers
 {
-    // Only logged-in users can access this controller
     [Authorize]
     public class HomeController : Controller
     {
@@ -15,7 +15,6 @@ namespace AqarFlow.Controllers
         private readonly IPropertyRepository _propertyRepository;
         private readonly IDealRepository _dealRepository;
         private readonly IFollowUpRepository _followUpRepository;
-
 
         public HomeController(
             ILogger<HomeController> logger,
@@ -31,112 +30,61 @@ namespace AqarFlow.Controllers
             _followUpRepository = followUpRepository;
         }
 
-
-        // =========================
         // DASHBOARD
-        // =========================
         public IActionResult Index()
         {
-            // Total customers
             ViewBag.TotalCustomers =
                 _customerRepository.Count();
 
-
-            // Total properties
             ViewBag.TotalProperties =
                 _propertyRepository.Count();
 
-
-            // Active deals
             ViewBag.ActiveDeals =
                 _dealRepository.CountActive();
 
-
-            // Follow-ups scheduled for today
             ViewBag.FollowUpsToday =
-                _followUpRepository.CountForDate(
-                    DateTime.Today
-                );
+                _followUpRepository.CountForDate(DateTime.Today);
 
-
-            // Latest 5 customers
             ViewBag.RecentCustomers =
                 _customerRepository.GetRecent(5);
 
-
-            // Customers by status
             ViewBag.NewCustomers =
-                _customerRepository
-                    .CountByStatus("New");
+                _customerRepository.CountByStatus("New");
 
             ViewBag.InterestedCustomers =
-                _customerRepository
-                    .CountByStatus("Interested");
+                _customerRepository.CountByStatus("Interested");
 
             ViewBag.InProgressCustomers =
-                _customerRepository
-                    .CountByStatus("In Progress");
+                _customerRepository.CountByStatus("In Progress");
 
             ViewBag.ClosedCustomers =
-                _customerRepository
-                    .CountByStatus("Closed");
+                _customerRepository.CountByStatus("Closed");
 
-
-            // Upcoming follow-ups
             ViewBag.UpcomingFollowUps =
                 _followUpRepository.GetUpcoming(5);
 
-
-            // =========================
-            // LEADS OVER TIME CHART
-            // =========================
-
             int currentYear = DateTime.Now.Year;
 
-
-            // Month names
             ViewBag.MonthLabels = new[]
             {
-                "Jan",
-                "Feb",
-                "Mar",
-                "Apr",
-                "May",
-                "Jun",
-                "Jul",
-                "Aug",
-                "Sep",
-                "Oct",
-                "Nov",
-                "Dec"
+                "Jan", "Feb", "Mar", "Apr",
+                "May", "Jun", "Jul", "Aug",
+                "Sep", "Oct", "Nov", "Dec"
             };
 
-
-            // Customer count for each month
             ViewBag.MonthValues =
-                _customerRepository
-                    .GetMonthlyCounts(currentYear);
-
+                _customerRepository.GetMonthlyCounts(currentYear);
 
             ViewBag.ChartYear = currentYear;
-
 
             return View();
         }
 
-
-        // =========================
-        // PRIVACY
-        // =========================
         public IActionResult Privacy()
         {
             return View();
         }
 
-
-        // =========================
-        // ERROR
-        // =========================
         [ResponseCache(
             Duration = 0,
             Location = ResponseCacheLocation.None,
